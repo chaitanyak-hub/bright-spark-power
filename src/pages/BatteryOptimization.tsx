@@ -15,7 +15,10 @@ const BatteryOptimization = () => {
   const [electricMeter, setElectricMeter] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
+  const [polling, setPolling] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [optimizationComplete, setOptimizationComplete] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -76,6 +79,133 @@ const BatteryOptimization = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const pollOptimizationStatus = async (processGuid: string) => {
+    setPolling(true);
+    let attempts = 0;
+    const maxAttempts = 150; // 5 minutes with 2-second intervals
+    
+    const poll = async () => {
+      try {
+        const { data: statusResponse, error: statusError } = await supabase.functions.invoke('check-optimization-logs', {
+          body: { processGuid }
+        });
+
+        if (statusError) throw statusError;
+
+        console.log('Polling status:', statusResponse);
+
+        if (statusResponse.isComplete) {
+          if (statusResponse.status === 'Succeeded') {
+            await downloadReport(processGuid);
+          } else {
+            setResult(prev => ({
+              ...prev,
+              status: 'Failed',
+              message: 'Optimization process failed. Please try again.'
+            }));
+            setOptimizationComplete(true);
+          }
+          setPolling(false);
+          return;
+        }
+
+        attempts++;
+        if (attempts < maxAttempts) {
+          // Exponential backoff: start at 2s, max at 10s
+          const delay = Math.min(2000 * Math.pow(1.1, attempts), 10000);
+          setTimeout(poll, delay);
+        } else {
+          setResult(prev => ({
+            ...prev,
+            status: 'Timeout',
+            message: 'Optimization is taking longer than expected. Please check back later.'
+          }));
+          setPolling(false);
+        }
+      } catch (error) {
+        console.error('Error polling status:', error);
+        setPolling(false);
+        setResult(prev => ({
+          ...prev,
+          status: 'Error',
+          message: 'Failed to check optimization status'
+        }));
+      }
+    };
+
+    poll();
+  };
+
+  const downloadReport = async (processGuid: string) => {
+    try {
+      const { data: reportResponse, error: reportError } = await supabase.functions.invoke('download-optimization-report', {
+        body: {
+          logGuid: processGuid,
+          solarPvUnitCost: formData.solarCostPerKw,
+          batteryUnitCost: formData.batteryCostPerKwh
+        }
+      });
+
+      if (reportError) throw reportError;
+
+      if (reportResponse.csvContent) {
+        const parsedData = parseCSVReport(reportResponse.csvContent);
+        setReportData(parsedData);
+        setOptimizationComplete(true);
+        
+        toast({
+          title: "Optimization Complete",
+          description: "Battery optimization analysis completed successfully!",
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      toast({
+        title: "Report Error",
+        description: "Failed to download optimization report",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const parseCSVReport = (csvContent: string) => {
+    const lines = csvContent.trim().split('\n');
+    const headers = lines[0].split(',');
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',');
+      const row: any = {};
+      headers.forEach((header, index) => {
+        row[header.trim()] = values[index]?.trim();
+      });
+      data.push(row);
+    }
+
+    // Find best scenario (minimum payback or maximum savings)
+    let bestScenario = data[0];
+    let minPayback = parseFloat(bestScenario['Payback (years)']) || Infinity;
+
+    data.forEach(row => {
+      const payback = parseFloat(row['Payback (years)']) || Infinity;
+      if (payback < minPayback) {
+        minPayback = payback;
+        bestScenario = row;
+      }
+    });
+
+    return {
+      scenarios: data,
+      bestScenario,
+      summary: {
+        minPayback: minPayback.toFixed(2),
+        recommendedBattery: bestScenario['Gross Battery Capacity (kWh)'],
+        solarPV: '0.0', // As per requirements
+        totalCostReduction: bestScenario['Total Cost of Imports (£)']
+      }
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,8 +276,8 @@ const BatteryOptimization = () => {
 
       if (apiError) throw apiError;
 
-      if (apiResponse?.responseData?.['process-guid']) {
-        const processGuid = apiResponse.responseData['process-guid'];
+      if (apiResponse?.['process-guid']) {
+        const processGuid = apiResponse['process-guid'];
         
         // Update with process GUID
         await supabase
@@ -168,6 +298,11 @@ const BatteryOptimization = () => {
           status: 'Processing',
           message: 'Your optimization request is being processed. This may take a few minutes.'
         });
+
+        // Start polling for completion
+        pollOptimizationStatus(processGuid);
+      } else {
+        throw new Error('No process GUID received from API');
       }
     } catch (error) {
       console.error('Error running optimization:', error);
@@ -223,7 +358,98 @@ const BatteryOptimization = () => {
           </p>
         </div>
 
-        {!result ? (
+        {optimizationComplete && reportData ? (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Optimization Results</CardTitle>
+                <CardDescription>
+                  Battery optimization analysis completed
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3 mb-6">
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-primary">{reportData.summary.minPayback} years</div>
+                    <div className="text-sm text-muted-foreground">Minimum Payback</div>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-primary">{reportData.summary.recommendedBattery} kWh</div>
+                    <div className="text-sm text-muted-foreground">Recommended Battery</div>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-primary">{reportData.summary.solarPV} kW</div>
+                    <div className="text-sm text-muted-foreground">Solar PV</div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="border border-gray-300 p-2 text-left">Battery Capacity (kWh)</th>
+                        <th className="border border-gray-300 p-2 text-left">Net Capacity (kWh)</th>
+                        <th className="border border-gray-300 p-2 text-left">Battery Cost (£)</th>
+                        <th className="border border-gray-300 p-2 text-left">Total Imports (£)</th>
+                        <th className="border border-gray-300 p-2 text-left">Savings vs BAU (£)</th>
+                        <th className="border border-gray-300 p-2 text-left">Payback (years)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reportData.scenarios.map((scenario: any, index: number) => (
+                        <tr key={index} className={scenario === reportData.bestScenario ? 'bg-green-50' : ''}>
+                          <td className="border border-gray-300 p-2">{scenario['Gross Battery Capacity (kWh)']}</td>
+                          <td className="border border-gray-300 p-2">{scenario['Net Battery Capacity (kWh)']}</td>
+                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Cost of Battery (£)']).toLocaleString()}</td>
+                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Total Cost of Imports (£)']).toLocaleString()}</td>
+                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Savings vs BAU (£)']).toLocaleString()}</td>
+                          <td className="border border-gray-300 p-2">{parseFloat(scenario['Payback (years)']).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-6 flex gap-2">
+                  <Button onClick={() => {
+                    setResult(null);
+                    setOptimizationComplete(false);
+                    setReportData(null);
+                  }} variant="outline">
+                    Run Another Optimization
+                  </Button>
+                  <Button asChild>
+                    <Link to={`/site/${siteId}`}>Back to Site Dashboard</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : result ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Optimization Status</CardTitle>
+              <CardDescription>
+                Process GUID: {result.processGuid}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+                <h3 className="text-lg font-semibold mb-2">{result.status}</h3>
+                <p className="text-muted-foreground mb-6">{result.message}</p>
+                {polling && (
+                  <p className="text-sm text-muted-foreground">
+                    Checking status automatically...
+                  </p>
+                )}
+                <Button onClick={() => setResult(null)} variant="outline" className="mt-4">
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -342,25 +568,6 @@ const BatteryOptimization = () => {
                   )}
                 </Button>
               </form>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Optimization Status</CardTitle>
-              <CardDescription>
-                Process GUID: {result.processGuid}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                <h3 className="text-lg font-semibold mb-2">{result.status}</h3>
-                <p className="text-muted-foreground mb-6">{result.message}</p>
-                <Button onClick={() => setResult(null)} variant="outline">
-                  Run Another Optimization
-                </Button>
-              </div>
             </CardContent>
           </Card>
         )}

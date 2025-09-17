@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.test-battery-api]
 verify_jwt = false
+
+[functions.check-optimization-logs]
+verify_jwt = false
+
+[functions.download-optimization-report]
+verify_jwt = false
