@@ -58,8 +58,9 @@ serve(async (req) => {
     const response = await fetch('https://api.perse.io/ncc/api/v1/transform/async-battery-optimizer', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${perseApiKey}`,
         'Content-Type': 'application/json',
+        'api-key': 'PERSE-TEST-CLIENT-APIKEY-0fcac2975984',
+        'Authorization': 'Basic YWRtaW46YWRtaW4xMjM=',
       },
       body: JSON.stringify(testBody),
     });
