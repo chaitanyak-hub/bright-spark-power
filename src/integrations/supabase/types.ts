@@ -290,58 +290,12 @@ export type Database = {
           },
         ]
       }
-      user_company_access: {
-        Row: {
-          company_id: string
-          created_at: string
-          id: string
-          role: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_company_access_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_company_with_access: {
-        Args: { companies_house_id?: string; company_name: string }
-        Returns: string
-      }
-      user_has_company_access: {
-        Args: { target_company_id: string }
-        Returns: boolean
-      }
-      user_has_site_access: {
-        Args: { target_site_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

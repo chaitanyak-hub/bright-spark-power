@@ -87,14 +87,8 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
   useEffect(() => {
     if (selectedCompany) {
       fetchContacts();
-    } else {
-      setContacts([]);
-      // Reset contact states when company changes
-      setSelectedContact('');
-      // If we're adding a new company, automatically enable "add new contact" mode
-      setIsAddingNewContact(isAddingNewCompany);
     }
-  }, [selectedCompany, isAddingNewCompany]);
+  }, [selectedCompany]);
 
   const fetchCompanies = async () => {
     try {
@@ -127,13 +121,6 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       
       if (error) throw error;
       setContacts(data || []);
-      
-      // If no existing contacts, automatically enable "add new contact" mode
-      if (!data || data.length === 0) {
-        setIsAddingNewContact(true);
-      } else {
-        setIsAddingNewContact(false);
-      }
     } catch (error) {
       console.error('Error fetching contacts:', error);
       toast({
@@ -199,30 +186,9 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
   };
 
   const validateAndSubmit = async () => {
-    // Check if user is authenticated first
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to create sites and companies",
-        variant: "destructive"
-      });
-      return;
-    }
-
     // Validation
     const companyToUse = companies.find(c => c.id === selectedCompany);
     const contactToUse = contacts.find(c => c.id === selectedContact);
-
-    console.log('Validation Debug:', {
-      user: user?.email,
-      companyToUse,
-      contactToUse,
-      isAddingNewCompany,
-      isAddingNewContact,
-      contactFormData,
-      selectedAddress
-    });
 
     if (!companyToUse && !isAddingNewCompany) {
       toast({
@@ -268,22 +234,16 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       // Create new company if needed
       if (isAddingNewCompany && newCompanyName.trim()) {
         const { data: companyData, error: companyError } = await supabase
-          .rpc('create_company_with_access', {
-            company_name: newCompanyName,
+          .from('companies')
+          .insert({
+            name: newCompanyName,
             companies_house_id: selectedCompaniesHouseId || null
-          });
+          })
+          .select()
+          .single();
 
         if (companyError) throw companyError;
-        
-        // Fetch the created company details
-        const { data: createdCompany, error: fetchError } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', companyData)
-          .single();
-          
-        if (fetchError) throw fetchError;
-        finalCompany = createdCompany;
+        finalCompany = companyData;
       }
 
       // Create new contact if needed
@@ -357,10 +317,7 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setIsAddingNewCompany(true);
-                  setIsAddingNewContact(true); // Automatically enable add new contact mode
-                }}
+                onClick={() => setIsAddingNewCompany(true)}
                 className="w-full"
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -413,10 +370,7 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
 
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setIsAddingNewCompany(false);
-                  setIsAddingNewContact(false); // Reset contact mode when switching back
-                }}
+                onClick={() => setIsAddingNewCompany(false)}
                 className="w-full"
               >
                 Use Existing Company Instead

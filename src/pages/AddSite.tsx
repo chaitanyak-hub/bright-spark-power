@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import MockAuthStatus from '@/components/MockAuthStatus';
 
 import CompanyContactAddressStep from '@/components/site-wizard/CompanyContactAddressStep';
 import MeterStep from '@/components/site-wizard/MeterStep';
@@ -16,7 +15,7 @@ const STEPS = [
   { id: 'setup', title: 'Company & Contact', description: 'Company, contact & address details', icon: '🏢' },
   { id: 'meters', title: 'Meters', description: 'Confirm meter details', icon: '⚡' },
   { id: 'details', title: 'Site Details', description: 'Energy consumption data', icon: '📊' },
-  { id: 'loa', title: 'Authorisation', description: 'Letter of Authority', icon: '📋' },
+  { id: 'loa', title: 'Authorization', description: 'Letter of Authority', icon: '📋' },
 ];
 
 const AddSite = () => {
@@ -70,8 +69,6 @@ const AddSite = () => {
       {/* Header */}
       <section className="bg-background border-b">
         <div className="container mx-auto px-6 py-8">
-          <MockAuthStatus />
-          
           <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10">
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
