@@ -330,6 +330,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_company_with_access: {
+        Args: { companies_house_id?: string; company_name: string }
+        Returns: string
+      }
       user_has_company_access: {
         Args: { target_company_id: string }
         Returns: boolean

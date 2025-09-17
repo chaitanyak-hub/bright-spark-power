@@ -199,11 +199,23 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
   };
 
   const validateAndSubmit = async () => {
+    // Check if user is authenticated first
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create sites and companies",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validation
     const companyToUse = companies.find(c => c.id === selectedCompany);
     const contactToUse = contacts.find(c => c.id === selectedContact);
 
     console.log('Validation Debug:', {
+      user: user?.email,
       companyToUse,
       contactToUse,
       isAddingNewCompany,
