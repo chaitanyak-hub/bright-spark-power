@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface BatteryOptimizerData {
   mpanNumber: string;
-  mic: string;
+  mic: number;
   minThresh: number;
   maxThresh: number;
   cycleEff: number;
@@ -16,6 +16,11 @@ interface BatteryOptimizerData {
   startKwh: number;
   incrementKwh: number;
   endKwh: number;
+  fromDateTime?: string;
+  toDateTime?: string;
+  startKwp?: number;
+  incrementKwp?: number;
+  endKwp?: number;
 }
 
 interface ApiResponse {
@@ -36,13 +41,39 @@ const BatteryOptimizerForm = () => {
   const onSubmit = async (data: BatteryOptimizerData) => {
     setIsLoading(true);
     try {
+      const apiBody = {
+        mpan: data.mpanNumber || "1470000721881",
+        fromDateTime: data.fromDateTime || "2025-04-01T00:00",
+        toDateTime: data.toDateTime || "2026-03-31T00:00",
+        availableCapacity: null,
+        MIC: data.mic || 500,
+        cycleEff: data.cycleEff || 0.95,
+        minThresh: data.minThresh || 0.1,
+        maxThresh: data.maxThresh || 0.9,
+        batteryGross: data.batteryGross || 500.0,
+        startKwp: data.startKwp || 0.0,
+        incrementKwp: data.incrementKwp || 0.0,
+        endKwp: data.endKwp || 0.0,
+        startKwh: data.startKwh || 500.0,
+        incrementKwh: data.incrementKwh || 100.0,
+        endKwh: data.endKwh || 1200.0,
+        generationMetaData: {
+          panelCount: null,
+          panelCapacityWatts: 500,
+          installationCostPerWatt: 1.0,
+          dcToAcDerate: 0.85,
+          installationLifeSpan: 30,
+          efficiencyDepreciationFactor: 0.995
+        }
+      };
+
       const apiResponse = await fetch('https://api.perse.io/ncc/api/v1/transform/async-battery-optimizer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer PERSE-TEST-CLIENT-APIKEY-0fcac2975984',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(apiBody),
       });
 
       if (!apiResponse.ok) {
@@ -96,8 +127,12 @@ const BatteryOptimizerForm = () => {
                 <Label htmlFor="mic">MIC</Label>
                 <Input
                   id="mic"
-                  {...register('mic', { required: 'MIC is required' })}
-                  placeholder="Enter MIC"
+                  type="number"
+                  {...register('mic', { 
+                    required: 'MIC is required',
+                    valueAsNumber: true 
+                  })}
+                  placeholder="Enter MIC (default: 500)"
                 />
                 {errors.mic && (
                   <p className="text-sm text-destructive">{errors.mic.message}</p>
@@ -114,7 +149,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Min Threshold is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Min Threshold"
+                  placeholder="Enter Min Threshold (default: 0.1)"
                 />
                 {errors.minThresh && (
                   <p className="text-sm text-destructive">{errors.minThresh.message}</p>
@@ -131,7 +166,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Max Threshold is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Max Threshold"
+                  placeholder="Enter Max Threshold (default: 0.9)"
                 />
                 {errors.maxThresh && (
                   <p className="text-sm text-destructive">{errors.maxThresh.message}</p>
@@ -148,7 +183,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Cycle Efficiency is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Cycle Efficiency"
+                  placeholder="Enter Cycle Efficiency (default: 0.95)"
                 />
                 {errors.cycleEff && (
                   <p className="text-sm text-destructive">{errors.cycleEff.message}</p>
@@ -165,7 +200,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Battery Gross is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Battery Gross"
+                  placeholder="Enter Battery Gross (default: 500.0)"
                 />
                 {errors.batteryGross && (
                   <p className="text-sm text-destructive">{errors.batteryGross.message}</p>
@@ -182,7 +217,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Start kWh is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Start kWh"
+                  placeholder="Enter Start kWh (default: 500.0)"
                 />
                 {errors.startKwh && (
                   <p className="text-sm text-destructive">{errors.startKwh.message}</p>
@@ -199,7 +234,7 @@ const BatteryOptimizerForm = () => {
                     required: 'Increment kWh is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter Increment kWh"
+                  placeholder="Enter Increment kWh (default: 100.0)"
                 />
                 {errors.incrementKwh && (
                   <p className="text-sm text-destructive">{errors.incrementKwh.message}</p>
@@ -216,7 +251,7 @@ const BatteryOptimizerForm = () => {
                     required: 'End kWh is required',
                     valueAsNumber: true 
                   })}
-                  placeholder="Enter End kWh"
+                  placeholder="Enter End kWh (default: 1200.0)"
                 />
                 {errors.endKwh && (
                   <p className="text-sm text-destructive">{errors.endKwh.message}</p>
