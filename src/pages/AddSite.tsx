@@ -6,17 +6,13 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import CompanyStep from '@/components/site-wizard/CompanyStep';
-import ContactStep from '@/components/site-wizard/ContactStep';
-import AddressStep from '@/components/site-wizard/AddressStep';
+import CompanyContactAddressStep from '@/components/site-wizard/CompanyContactAddressStep';
 import MeterStep from '@/components/site-wizard/MeterStep';
 import SiteDetailsStep from '@/components/site-wizard/SiteDetailsStep';
 import LoAStep from '@/components/site-wizard/LoAStep';
 
 const STEPS = [
-  { id: 'company', title: 'Company', description: 'Select or add company', icon: '🏢' },
-  { id: 'contact', title: 'Contact', description: 'Add contact person', icon: '👤' },
-  { id: 'address', title: 'Address', description: 'Site location', icon: '📍' },
+  { id: 'setup', title: 'Company & Contact', description: 'Company, contact & address details', icon: '🏢' },
   { id: 'meters', title: 'Meters', description: 'Confirm meter details', icon: '⚡' },
   { id: 'details', title: 'Site Details', description: 'Energy consumption data', icon: '📊' },
   { id: 'loa', title: 'Authorization', description: 'Letter of Authority', icon: '📋' },
@@ -26,9 +22,7 @@ const AddSite = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [siteData, setSiteData] = useState({
-    company: null,
-    contact: null,
-    address: null,
+    setup: null, // Contains company, contact, and address
     meters: [],
     details: null,
     loa: null
@@ -57,16 +51,12 @@ const AddSite = () => {
 
   const renderStep = () => {
     switch (currentStepId) {
-      case 'company':
-        return <CompanyStep onNext={handleNext} initialData={siteData.company} />;
-      case 'contact':
-        return <ContactStep onNext={handleNext} onBack={handleBack} company={siteData.company} initialData={siteData.contact} />;
-      case 'address':
-        return <AddressStep onNext={handleNext} onBack={handleBack} initialData={siteData.address} />;
+      case 'setup':
+        return <CompanyContactAddressStep onNext={handleNext} initialData={siteData.setup} />;
       case 'meters':
-        return <MeterStep onNext={handleNext} onBack={handleBack} address={siteData.address} initialData={siteData.meters} />;
+        return <MeterStep onNext={handleNext} onBack={handleBack} address={siteData.setup?.address} initialData={siteData.meters} />;
       case 'details':
-        return <SiteDetailsStep onNext={handleNext} onBack={handleBack} address={siteData.address} initialData={siteData.details} />;
+        return <SiteDetailsStep onNext={handleNext} onBack={handleBack} address={siteData.setup?.address} initialData={siteData.details} />;
       case 'loa':
         return <LoAStep onComplete={handleComplete} onBack={handleBack} siteData={siteData} />;
       default:
