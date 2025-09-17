@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Zap, Battery, TrendingUp, Settings } from 'lucide-react';
+import { ArrowLeft, Zap, Battery, TrendingUp, Settings, Building2, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -95,9 +95,11 @@ const SiteDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
         <div className="container mx-auto p-6">
-          <div className="text-center">Loading site data...</div>
+          <div className="text-center py-20">
+            <div className="animate-pulse text-lg text-muted-foreground">Loading site data...</div>
+          </div>
         </div>
       </div>
     );
@@ -105,9 +107,9 @@ const SiteDashboard = () => {
 
   if (!site) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
         <div className="container mx-auto p-6">
-          <div className="text-center">Site not found</div>
+          <div className="text-center py-20">Site not found</div>
         </div>
       </div>
     );
@@ -116,44 +118,52 @@ const SiteDashboard = () => {
   const electricMeter = meters.find(m => m.meter_type === 'ELEC');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="mb-8">
-          <Button variant="ghost" asChild className="mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Header Section */}
+      <section className="bg-background border-b">
+        <div className="container mx-auto px-6 py-8">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10">
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
           
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{site.companies?.name}</h1>
-              <p className="text-muted-foreground text-lg">
-                {site.address_line_1}, {site.postcode}
-              </p>
-              <div className="mt-2">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold">{site.companies?.name}</h1>
+                  <p className="text-muted-foreground text-lg">
+                    {site.address_line_1}, {site.postcode}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4">
                 <Badge 
-                  variant={site.loa_status === 'Verified' ? 'default' : 'secondary'}
-                  className={
+                  variant="outline"
+                  className={`text-sm px-3 py-1 ${
                     site.loa_status === 'Verified' 
-                      ? 'bg-green-100 text-green-700' 
+                      ? 'bg-green-50 text-green-700 border-green-200' 
                       : site.loa_status === 'Failed'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                  }`}
                 >
-                  LoA: {site.loa_status}
+                  LoA Status: {site.loa_status}
                 </Badge>
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               {site.loa_status !== 'Verified' && (
                 <Button 
                   onClick={handleAutoValidateLoA}
                   variant="outline"
-                  className="bg-yellow-50 hover:bg-yellow-100 border-yellow-300"
+                  className="bg-yellow-50 hover:bg-yellow-100 border-yellow-300 text-yellow-800"
                 >
                   Auto-Validate LoA (Testing)
                 </Button>
@@ -161,118 +171,149 @@ const SiteDashboard = () => {
               <Button 
                 onClick={handleOptimizeClick}
                 disabled={site.loa_status !== 'Verified'}
-                className="bg-primary hover:bg-primary/90"
+                size="lg"
+                className="btn-primary"
               >
-                <Battery className="mr-2 h-4 w-4" />
+                <Battery className="mr-2 h-5 w-5" />
                 Run Battery Optimization
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
+      </section>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Electricity Usage</CardTitle>
-              <Zap className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12,450 kWh</div>
-              <p className="text-xs text-muted-foreground">Last 12 months</p>
-              <div className="text-sm font-medium text-green-600">£3,735</div>
-            </CardContent>
-          </Card>
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        {/* Energy Overview Cards */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Energy Overview</h2>
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="shadow-card border-0 group hover:shadow-primary transition-all duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Electricity Usage</CardTitle>
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center group-hover:bg-yellow-200 transition-colors">
+                  <Zap className="h-5 w-5 text-yellow-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">12,450 kWh</div>
+                <p className="text-sm text-muted-foreground mt-1">Last 12 months</p>
+                <div className="text-lg font-semibold text-yellow-600 mt-2">£3,735</div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gas Usage</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">8,200 kWh</div>
-              <p className="text-xs text-muted-foreground">Last 12 months</p>
-              <div className="text-sm font-medium text-blue-600">£574</div>
-            </CardContent>
-          </Card>
+            <Card className="shadow-card border-0 group hover:shadow-secondary transition-all duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Gas Usage</CardTitle>
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-foreground">8,200 kWh</div>
+                <p className="text-sm text-muted-foreground mt-1">Last 12 months</p>
+                <div className="text-lg font-semibold text-blue-600 mt-2">£574</div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Potential Savings</CardTitle>
-              <Battery className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">£1,240</div>
-              <p className="text-xs text-muted-foreground">Estimated annual</p>
-              <div className="text-sm font-medium text-primary">33% reduction</div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="shadow-card border-0 group hover:shadow-primary transition-all duration-300 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Potential Savings</CardTitle>
+                <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                  <Battery className="h-5 w-5 text-primary" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-primary">£1,240</div>
+                <p className="text-sm text-muted-foreground mt-1">Estimated annual</p>
+                <div className="text-lg font-semibold text-primary mt-2">33% reduction</div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Site Information</CardTitle>
+        {/* Detailed Information */}
+        <section className="grid gap-8 lg:grid-cols-2">
+          <Card className="shadow-card border-0">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-xl">Site Information</CardTitle>
               <CardDescription>Property and energy details</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Contact:</span>
-                  <div>{site.contacts?.first_name} {site.contacts?.last_name}</div>
-                  <div className="text-muted-foreground">{site.contacts?.email}</div>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground">Contact Person</span>
+                    <div className="mt-1">
+                      <div className="font-medium">{site.contacts?.first_name} {site.contacts?.last_name}</div>
+                      <div className="text-sm text-muted-foreground">{site.contacts?.email}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground">Property Details</span>
+                    <div className="mt-1">
+                      <div className="font-medium">{site.floors} floors</div>
+                      <div className="text-sm text-muted-foreground">{site.area_m2} m² total area</div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Property Type:</span>
-                  <div>{site.floors} floors</div>
-                  <div className="text-muted-foreground">{site.area_m2} m²</div>
-                </div>
-                <div>
-                  <span className="font-medium">Year Built:</span>
-                  <div>{site.year_built}</div>
-                  <div className="text-muted-foreground">Listed: {site.listed_grade}</div>
-                </div>
-                <div>
-                  <span className="font-medium">Energy Suppliers:</span>
-                  <div>Elec: {site.elec_supplier}</div>
-                  <div>Gas: {site.gas_supplier}</div>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground">Building Information</span>
+                    <div className="mt-1">
+                      <div className="font-medium">Built in {site.year_built}</div>
+                      <div className="text-sm text-muted-foreground">Listed grade: {site.listed_grade}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground">Energy Suppliers</span>
+                    <div className="mt-1">
+                      <div className="font-medium">Electricity: {site.elec_supplier}</div>
+                      <div className="font-medium">Gas: {site.gas_supplier}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Meter Details</CardTitle>
+          <Card className="shadow-card border-0">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-xl">Meter Configuration</CardTitle>
               <CardDescription>Electricity and gas meter information</CardDescription>
             </CardHeader>
             <CardContent>
               {meters.length > 0 ? (
                 <div className="space-y-4">
                   {meters.map((meter) => (
-                    <div key={meter.id} className="p-3 border rounded-lg">
+                    <div key={meter.id} className="p-4 border border-border/50 rounded-xl bg-gradient-to-r from-muted/20 to-transparent">
                       <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium flex items-center">
+                        <div className="flex items-start space-x-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            meter.meter_type === 'ELEC' 
+                              ? 'bg-yellow-100 text-yellow-600' 
+                              : 'bg-blue-100 text-blue-600'
+                          }`}>
                             {meter.meter_type === 'ELEC' ? (
-                              <Zap className="mr-2 h-4 w-4 text-yellow-500" />
+                              <Zap className="h-5 w-5" />
                             ) : (
-                              <TrendingUp className="mr-2 h-4 w-4 text-blue-500" />
+                              <TrendingUp className="h-5 w-5" />
                             )}
-                            {meter.meter_type}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {meter.meter_type === 'ELEC' 
-                              ? meter.mpan_top_line || meter.mpan_full
-                              : meter.mprn
-                            }
+                          <div>
+                            <div className="font-semibold text-foreground">{meter.meter_type} Meter</div>
+                            <div className="text-sm text-muted-foreground font-mono">
+                              {meter.meter_type === 'ELEC' 
+                                ? meter.mpan_top_line || meter.mpan_full
+                                : meter.mprn
+                              }
+                            </div>
                           </div>
                         </div>
                         {meter.meter_type === 'ELEC' && meter.mic && (
                           <div className="text-right">
-                            <div className="text-sm font-medium">MIC: {meter.mic}kW</div>
-                            <Button variant="ghost" size="sm">
-                              <Settings className="h-3 w-3" />
-                            </Button>
+                            <div className="text-sm font-medium text-muted-foreground">Maximum Import</div>
+                            <div className="text-lg font-bold text-primary">{meter.mic}kW</div>
                           </div>
                         )}
                       </div>
@@ -280,25 +321,38 @@ const SiteDashboard = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center text-muted-foreground">
-                  No meters configured
+                <div className="text-center py-8 text-muted-foreground">
+                  <Settings className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <div>No meters configured</div>
                 </div>
               )}
             </CardContent>
           </Card>
-        </div>
+        </section>
 
+        {/* Authorization Warning */}
         {site.loa_status !== 'Verified' && (
-          <Card className="mt-6 border-yellow-200 bg-yellow-50">
-            <CardContent className="p-6">
+          <Card className="mt-8 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-card">
+            <CardContent className="p-8">
               <div className="text-center">
-                <div className="text-yellow-800 font-medium mb-2">
-                  Solar Recommendations & Battery Optimization Unavailable
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Battery className="h-8 w-8 text-yellow-600" />
                 </div>
-                <p className="text-yellow-700 text-sm">
-                  Letter of Authority verification is required to access optimization features.
-                  Status: {site.loa_status}
+                <div className="text-yellow-800 font-semibold text-lg mb-2">
+                  Battery Optimization Unavailable
+                </div>
+                <p className="text-yellow-700 max-w-2xl mx-auto">
+                  Letter of Authority verification is required to access advanced optimization features.
+                  Current status: <span className="font-semibold">{site.loa_status}</span>
                 </p>
+                {site.loa_status !== 'Verified' && (
+                  <Button 
+                    onClick={handleAutoValidateLoA}
+                    className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    Auto-Validate for Testing
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

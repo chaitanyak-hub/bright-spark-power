@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Battery, Loader2 } from 'lucide-react';
+import { ArrowLeft, Battery, Loader2, TrendingUp, Zap, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -342,123 +342,186 @@ const BatteryOptimization = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="mb-8">
-          <Button variant="ghost" asChild className="mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Header Section */}
+      <section className="bg-background border-b">
+        <div className="container mx-auto px-6 py-8">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10">
             <Link to={`/site/${siteId}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Site Dashboard
             </Link>
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Battery Optimization</h1>
-          <p className="text-muted-foreground text-lg">
-            {site.companies?.name} - {site.address_line_1}, {site.postcode}
-          </p>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Battery className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold">Battery Optimization</h1>
+                <p className="text-muted-foreground text-lg">
+                  {site.companies?.name} - {site.address_line_1}, {site.postcode}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <div className="container mx-auto px-6 py-8 max-w-6xl">
 
         {optimizationComplete && reportData ? (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Optimization Results</CardTitle>
-                <CardDescription>
-                  Battery optimization analysis completed
-                </CardDescription>
+          <div className="space-y-8">
+            <Card className="shadow-card border-0 bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardHeader className="pb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Battery className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl text-green-800">Optimization Complete!</CardTitle>
+                    <CardDescription className="text-green-700">
+                      Your battery optimization analysis has been completed successfully
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 md:grid-cols-3 mb-6">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{reportData.summary.minPayback} years</div>
-                    <div className="text-sm text-muted-foreground">Minimum Payback</div>
+                <div className="grid gap-6 md:grid-cols-3 mb-8">
+                  <div className="text-center p-6 bg-white/70 rounded-2xl shadow-card">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <TrendingUp className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="text-3xl font-bold text-primary mb-2">{reportData.summary.minPayback} years</div>
+                    <div className="text-sm font-medium text-muted-foreground">Minimum Payback Period</div>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{reportData.summary.recommendedBattery} kWh</div>
-                    <div className="text-sm text-muted-foreground">Recommended Battery</div>
+                  <div className="text-center p-6 bg-white/70 rounded-2xl shadow-card">
+                    <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Battery className="h-8 w-8 text-secondary" />
+                    </div>
+                    <div className="text-3xl font-bold text-secondary mb-2">{reportData.summary.recommendedBattery} kWh</div>
+                    <div className="text-sm font-medium text-muted-foreground">Recommended Battery Capacity</div>
                   </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{reportData.summary.solarPV} kW</div>
-                    <div className="text-sm text-muted-foreground">Solar PV</div>
+                  <div className="text-center p-6 bg-white/70 rounded-2xl shadow-card">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Zap className="h-8 w-8 text-primary" />
+                    </div>
+                    <div className="text-3xl font-bold text-primary mb-2">{reportData.summary.solarPV} kW</div>
+                    <div className="text-sm font-medium text-muted-foreground">Solar PV Capacity</div>
                   </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-muted">
-                        <th className="border border-gray-300 p-2 text-left">Battery Capacity (kWh)</th>
-                        <th className="border border-gray-300 p-2 text-left">Net Capacity (kWh)</th>
-                        <th className="border border-gray-300 p-2 text-left">Battery Cost (£)</th>
-                        <th className="border border-gray-300 p-2 text-left">Total Imports (£)</th>
-                        <th className="border border-gray-300 p-2 text-left">Savings vs BAU (£)</th>
-                        <th className="border border-gray-300 p-2 text-left">Payback (years)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {reportData.scenarios.map((scenario: any, index: number) => (
-                        <tr key={index} className={scenario === reportData.bestScenario ? 'bg-green-50' : ''}>
-                          <td className="border border-gray-300 p-2">{scenario['Gross Battery Capacity (kWh)']}</td>
-                          <td className="border border-gray-300 p-2">{scenario['Net Battery Capacity (kWh)']}</td>
-                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Cost of Battery (£)']).toLocaleString()}</td>
-                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Total Cost of Imports (£)']).toLocaleString()}</td>
-                          <td className="border border-gray-300 p-2">£{parseFloat(scenario['Savings vs BAU (£)']).toLocaleString()}</td>
-                          <td className="border border-gray-300 p-2">{parseFloat(scenario['Payback (years)']).toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <Card className="shadow-card border-0 bg-white/50">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Detailed Analysis Results</CardTitle>
+                    <CardDescription>Comparison of different battery capacity scenarios</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b-2 border-muted">
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Battery Capacity</th>
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Net Capacity</th>
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Battery Cost</th>
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Total Imports</th>
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Savings vs BAU</th>
+                            <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Payback Period</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.scenarios.map((scenario: any, index: number) => (
+                            <tr key={index} className={`border-b border-muted/50 hover:bg-muted/20 transition-colors ${
+                              scenario === reportData.bestScenario ? 'bg-green-50 border-green-200' : ''
+                            }`}>
+                              <td className="py-4 px-4 font-medium">{scenario['Gross Battery Capacity (kWh)']} kWh</td>
+                              <td className="py-4 px-4">{scenario['Net Battery Capacity (kWh)']} kWh</td>
+                              <td className="py-4 px-4 font-medium">£{parseFloat(scenario['Cost of Battery (£)']).toLocaleString()}</td>
+                              <td className="py-4 px-4">£{parseFloat(scenario['Total Cost of Imports (£)']).toLocaleString()}</td>
+                              <td className="py-4 px-4 font-medium text-green-600">£{parseFloat(scenario['Savings vs BAU (£)']).toLocaleString()}</td>
+                              <td className="py-4 px-4 font-bold text-primary">{parseFloat(scenario['Payback (years)']).toFixed(2)} years</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <div className="mt-6 flex gap-2">
-                  <Button onClick={() => {
-                    setResult(null);
-                    setOptimizationComplete(false);
-                    setReportData(null);
-                  }} variant="outline">
+                <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    onClick={() => {
+                      setResult(null);
+                      setOptimizationComplete(false);
+                      setReportData(null);
+                    }} 
+                    variant="outline"
+                    size="lg"
+                    className="flex-1"
+                  >
+                    <Battery className="mr-2 h-4 w-4" />
                     Run Another Optimization
                   </Button>
-                  <Button asChild>
-                    <Link to={`/site/${siteId}`}>Back to Site Dashboard</Link>
+                  <Button asChild size="lg" className="btn-primary flex-1">
+                    <Link to={`/site/${siteId}`}>
+                      Back to Site Dashboard
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         ) : result ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Optimization Status</CardTitle>
-              <CardDescription>
-                Process GUID: {result.processGuid}
-              </CardDescription>
+          <Card className="shadow-card border-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardHeader className="pb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl text-blue-800">Processing Optimization</CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Process ID: {result.processGuid}
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-                <h3 className="text-lg font-semibold mb-2">{result.status}</h3>
-                <p className="text-muted-foreground mb-6">{result.message}</p>
+              <div className="text-center py-12">
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-3 text-blue-800">{result.status}</h3>
+                <p className="text-blue-700 mb-8 text-lg max-w-md mx-auto">{result.message}</p>
                 {polling && (
-                  <p className="text-sm text-muted-foreground">
-                    Checking status automatically...
-                  </p>
+                  <div className="bg-white/50 rounded-lg p-4 mb-6 max-w-sm mx-auto">
+                    <p className="text-sm text-blue-600 font-medium">
+                      ⚡ Automatically checking status...
+                    </p>
+                  </div>
                 )}
-                <Button onClick={() => setResult(null)} variant="outline" className="mt-4">
-                  Cancel
+                <Button onClick={() => setResult(null)} variant="outline" size="lg" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                  Cancel Process
                 </Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Battery className="mr-2 h-5 w-5" />
-                Battery & Solar Configuration
-              </CardTitle>
-              <CardDescription>
-                Configure parameters for battery optimization analysis
-              </CardDescription>
+          <Card className="shadow-card border-0">
+            <CardHeader className="pb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <Battery className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">Battery & Solar Configuration</CardTitle>
+                  <CardDescription className="text-base">
+                    Configure parameters for comprehensive battery optimization analysis
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -541,29 +604,42 @@ const BatteryOptimization = () => {
                   </div>
                 </div>
 
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">Analysis Parameters</h4>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div>• Analysis Period: April 2025 - March 2026</div>
-                    <div>• Battery Capacity Range: 500 - 1200 kWh (100 kWh increments)</div>
-                    <div>• Solar PV: 0 kW (battery-only analysis)</div>
-                  </div>
-                </div>
+                <Card className="bg-gradient-to-r from-muted/30 to-muted/50 border-muted">
+                  <CardContent className="p-6">
+                    <h4 className="font-semibold mb-4 text-lg">Analysis Parameters</h4>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <span className="text-sm">Analysis Period: April 2025 - March 2026</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-secondary"></div>
+                        <span className="text-sm">Battery Range: 500 - 1200 kWh (100 kWh steps)</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <span className="text-sm">Solar PV: 0 kW (battery-only analysis)</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <Button 
                   type="submit" 
-                  className="w-full" 
+                  size="lg"
+                  className="w-full btn-primary h-14 text-lg" 
                   disabled={optimizing}
                 >
                   {optimizing ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
                       Running Optimization...
                     </>
                   ) : (
                     <>
-                      <Battery className="mr-2 h-4 w-4" />
+                      <Battery className="mr-3 h-5 w-5" />
                       Run Battery Optimization
+                      <ArrowRight className="ml-3 h-5 w-5" />
                     </>
                   )}
                 </Button>

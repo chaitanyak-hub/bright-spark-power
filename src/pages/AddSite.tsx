@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import CompanyStep from '@/components/site-wizard/CompanyStep';
@@ -14,12 +14,12 @@ import SiteDetailsStep from '@/components/site-wizard/SiteDetailsStep';
 import LoAStep from '@/components/site-wizard/LoAStep';
 
 const STEPS = [
-  { id: 'company', title: 'Company', description: 'Select or add company' },
-  { id: 'contact', title: 'Contact', description: 'Add contact person' },
-  { id: 'address', title: 'Address', description: 'Site location' },
-  { id: 'meters', title: 'Meters', description: 'Confirm meter details' },
-  { id: 'details', title: 'Site Details', description: 'Energy consumption data' },
-  { id: 'loa', title: 'Authorization', description: 'Letter of Authority' },
+  { id: 'company', title: 'Company', description: 'Select or add company', icon: '🏢' },
+  { id: 'contact', title: 'Contact', description: 'Add contact person', icon: '👤' },
+  { id: 'address', title: 'Address', description: 'Site location', icon: '📍' },
+  { id: 'meters', title: 'Meters', description: 'Confirm meter details', icon: '⚡' },
+  { id: 'details', title: 'Site Details', description: 'Energy consumption data', icon: '📊' },
+  { id: 'loa', title: 'Authorization', description: 'Letter of Authority', icon: '📋' },
 ];
 
 const AddSite = () => {
@@ -52,8 +52,7 @@ const AddSite = () => {
 
   const handleComplete = (stepData: any) => {
     setSiteData(prev => ({ ...prev, [currentStepId]: stepData }));
-    // Navigate to the created site's dashboard
-    navigate('/'); // For now, go back to main page
+    navigate('/');
   };
 
   const renderStep = () => {
@@ -76,42 +75,92 @@ const AddSite = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="mb-8">
-          <Button variant="ghost" asChild className="mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Header */}
+      <section className="bg-background border-b">
+        <div className="container mx-auto px-6 py-8">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10">
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
           
-          <h1 className="text-3xl font-bold mb-2">Add New Site</h1>
-          <p className="text-muted-foreground">
-            Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].description}
-          </p>
-          
-          <div className="mt-4">
-            <Progress value={progress} className="w-full h-2" />
-            <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-              {STEPS.map((step, index) => (
-                <span key={step.id} className={index <= currentStep ? 'text-primary font-medium' : ''}>
-                  {step.title}
-                </span>
-              ))}
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Add New Site</h1>
+            <p className="text-muted-foreground text-lg mb-8">
+              Step {currentStep + 1} of {STEPS.length}: {STEPS[currentStep].description}
+            </p>
+            
+            {/* Progress Section */}
+            <div className="mb-8">
+              <div className="flex justify-between mb-4">
+                <div className="text-sm font-medium text-primary">
+                  Progress: {Math.round(progress)}% complete
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {currentStep + 1} of {STEPS.length} steps
+                </div>
+              </div>
+              <Progress value={progress} className="w-full h-3 mb-6" />
+              
+              {/* Step indicators */}
+              <div className="hidden md:flex justify-between">
+                {STEPS.map((step, index) => (
+                  <div key={step.id} className="flex flex-col items-center space-y-2 flex-1">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                      index < currentStep 
+                        ? 'bg-primary text-primary-foreground shadow-primary' 
+                        : index === currentStep 
+                        ? 'bg-primary/20 text-primary border-2 border-primary' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {index < currentStep ? (
+                        <CheckCircle className="h-6 w-6" />
+                      ) : (
+                        <span className="text-lg">{step.icon}</span>
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <div className={`text-sm font-medium ${
+                        index <= currentStep ? 'text-primary' : 'text-muted-foreground'
+                      }`}>
+                        {step.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground hidden lg:block">
+                        {step.description}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-            <CardDescription>{STEPS[currentStep].description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderStep()}
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="shadow-card border-0">
+            <CardHeader className="pb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">{STEPS[currentStep].icon}</span>
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">{STEPS[currentStep].title}</CardTitle>
+                  <CardDescription className="text-base">
+                    {STEPS[currentStep].description}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {renderStep()}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
