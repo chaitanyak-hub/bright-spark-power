@@ -49,13 +49,13 @@ const Index = () => {
               <span className="text-orange-300">30%</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90 max-w-3xl mx-auto">
-              Revolutionary Solar & Battery Solutions with AI-Powered Optimization
+              Revolutionary Solar & Battery Solutions with Continuously Improving Algorithm with Real Data
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="btn-primary text-lg px-8 py-4 h-auto">
                 <Link to="/add-site">
                   <Plus className="mr-2 h-5 w-5" />
-                  Start Your Assessment
+                  Get Started
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
