@@ -46,29 +46,15 @@ const LoAStep = ({ onComplete, onBack, siteData }: LoAStepProps) => {
     setLoaStatus('Uploaded');
     
     try {
-      // Simulate upload and verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setLoaStatus('Verifying');
+      // Auto-validate for now - skip verification process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoaStatus('Verified');
       
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Randomly succeed or fail for demo
-      const success = Math.random() > 0.3;
-      setLoaStatus(success ? 'Verified' : 'Failed');
-      
-      if (success) {
-        toast({
-          title: "Success",
-          description: "Letter of Authority verified successfully",
-        });
-        await createSite();
-      } else {
-        toast({
-          title: "Verification Failed",
-          description: "The uploaded document could not be verified. Please try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Letter of Authority automatically verified for testing",
+      });
+      await createSite();
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -86,13 +72,13 @@ const LoAStep = ({ onComplete, onBack, siteData }: LoAStepProps) => {
     setLoaStatus('Sent');
     
     try {
-      // Simulate sending digital LoA
+      // Auto-validate for now - skip signature process
       await new Promise(resolve => setTimeout(resolve, 1000));
-      setLoaStatus('PendingSignature');
+      setLoaStatus('Verified');
       
       toast({
         title: "Success",
-        description: "Digital Letter of Authority sent successfully",
+        description: "Digital Letter of Authority automatically verified for testing",
       });
       
       await createSite();

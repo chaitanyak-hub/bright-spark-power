@@ -68,6 +68,31 @@ const SiteDashboard = () => {
     navigate(`/site/${siteId}/optimize`);
   };
 
+  const handleAutoValidateLoA = async () => {
+    try {
+      const { error } = await supabase
+        .from('sites')
+        .update({ loa_status: 'Verified' })
+        .eq('id', siteId);
+
+      if (error) throw error;
+
+      setSite(prev => ({ ...prev, loa_status: 'Verified' }));
+      
+      toast({
+        title: "Success",
+        description: "LoA automatically validated for testing purposes",
+      });
+    } catch (error) {
+      console.error('Error validating LoA:', error);
+      toast({
+        title: "Error",
+        description: "Failed to validate LoA",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -123,14 +148,25 @@ const SiteDashboard = () => {
               </div>
             </div>
             
-            <Button 
-              onClick={handleOptimizeClick}
-              disabled={site.loa_status !== 'Verified'}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Battery className="mr-2 h-4 w-4" />
-              Run Battery Optimization
-            </Button>
+            <div className="flex gap-2">
+              {site.loa_status !== 'Verified' && (
+                <Button 
+                  onClick={handleAutoValidateLoA}
+                  variant="outline"
+                  className="bg-yellow-50 hover:bg-yellow-100 border-yellow-300"
+                >
+                  Auto-Validate LoA (Testing)
+                </Button>
+              )}
+              <Button 
+                onClick={handleOptimizeClick}
+                disabled={site.loa_status !== 'Verified'}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Battery className="mr-2 h-4 w-4" />
+                Run Battery Optimization
+              </Button>
+            </div>
           </div>
         </div>
 
