@@ -91,9 +91,10 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       setContacts([]);
       // Reset contact states when company changes
       setSelectedContact('');
-      setIsAddingNewContact(false);
+      // If we're adding a new company, automatically enable "add new contact" mode
+      setIsAddingNewContact(isAddingNewCompany);
     }
-  }, [selectedCompany]);
+  }, [selectedCompany, isAddingNewCompany]);
 
   const fetchCompanies = async () => {
     try {
@@ -338,7 +339,10 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setIsAddingNewCompany(true)}
+                onClick={() => {
+                  setIsAddingNewCompany(true);
+                  setIsAddingNewContact(true); // Automatically enable add new contact mode
+                }}
                 className="w-full"
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -391,7 +395,10 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
 
               <Button 
                 variant="outline" 
-                onClick={() => setIsAddingNewCompany(false)}
+                onClick={() => {
+                  setIsAddingNewCompany(false);
+                  setIsAddingNewContact(false); // Reset contact mode when switching back
+                }}
                 className="w-full"
               >
                 Use Existing Company Instead
