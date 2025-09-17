@@ -90,6 +90,14 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
     }
   }, [selectedCompany]);
 
+  useEffect(() => {
+    if (isAddingNewCompany) {
+      setIsAddingNewContact(true);
+      setSelectedContact('');
+      setContacts([]);
+    }
+  }, [isAddingNewCompany]);
+
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
@@ -121,6 +129,7 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       
       if (error) throw error;
       setContacts(data || []);
+      setIsAddingNewContact(!(data && data.length > 0));
     } catch (error) {
       console.error('Error fetching contacts:', error);
       toast({
