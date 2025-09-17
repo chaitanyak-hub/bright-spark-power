@@ -14,7 +14,282 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          companies_house_id: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          companies_house_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          companies_house_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meters: {
+        Row: {
+          created_at: string
+          id: string
+          meter_type: string
+          mic: number | null
+          mpan_full: string | null
+          mpan_top_line: string | null
+          mprn: string | null
+          site_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meter_type: string
+          mic?: number | null
+          mpan_full?: string | null
+          mpan_top_line?: string | null
+          mprn?: string | null
+          site_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meter_type?: string
+          mic?: number | null
+          mpan_full?: string | null
+          mpan_top_line?: string | null
+          mprn?: string | null
+          site_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meters_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      optimiser_runs: {
+        Row: {
+          battery_cost_per_kwh: number
+          created_at: string
+          cycle_eff_pct: number
+          id: string
+          logs: Json | null
+          max_thresh_pct: number
+          mic: number
+          min_thresh_pct: number
+          mpan: string
+          parsed_report: Json | null
+          process_guid: string | null
+          result_csv: string | null
+          site_id: string
+          solar_cost_per_kw: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          battery_cost_per_kwh: number
+          created_at?: string
+          cycle_eff_pct: number
+          id?: string
+          logs?: Json | null
+          max_thresh_pct: number
+          mic: number
+          min_thresh_pct: number
+          mpan: string
+          parsed_report?: Json | null
+          process_guid?: string | null
+          result_csv?: string | null
+          site_id: string
+          solar_cost_per_kw: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          battery_cost_per_kwh?: number
+          created_at?: string
+          cycle_eff_pct?: number
+          id?: string
+          logs?: Json | null
+          max_thresh_pct?: number
+          mic?: number
+          min_thresh_pct?: number
+          mpan?: string
+          parsed_report?: Json | null
+          process_guid?: string | null
+          result_csv?: string | null
+          site_id?: string
+          solar_cost_per_kw?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimiser_runs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          area_m2: number | null
+          city: string | null
+          company_id: string
+          contact_id: string | null
+          cooking_pct: number | null
+          created_at: string
+          elec_supplier: string | null
+          elec_unit_rate_pence: number | null
+          floors: number | null
+          gas_supplier: string | null
+          gas_unit_rate_pence: number | null
+          heating_pct: number | null
+          hot_water_pct: number | null
+          id: string
+          lighting_pct: number | null
+          listed_grade: string | null
+          loa_file_url: string | null
+          loa_status: string
+          others_pct: number | null
+          postcode: string | null
+          updated_at: string
+          uprn: string | null
+          year_built: number | null
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          area_m2?: number | null
+          city?: string | null
+          company_id: string
+          contact_id?: string | null
+          cooking_pct?: number | null
+          created_at?: string
+          elec_supplier?: string | null
+          elec_unit_rate_pence?: number | null
+          floors?: number | null
+          gas_supplier?: string | null
+          gas_unit_rate_pence?: number | null
+          heating_pct?: number | null
+          hot_water_pct?: number | null
+          id?: string
+          lighting_pct?: number | null
+          listed_grade?: string | null
+          loa_file_url?: string | null
+          loa_status?: string
+          others_pct?: number | null
+          postcode?: string | null
+          updated_at?: string
+          uprn?: string | null
+          year_built?: number | null
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          area_m2?: number | null
+          city?: string | null
+          company_id?: string
+          contact_id?: string | null
+          cooking_pct?: number | null
+          created_at?: string
+          elec_supplier?: string | null
+          elec_unit_rate_pence?: number | null
+          floors?: number | null
+          gas_supplier?: string | null
+          gas_unit_rate_pence?: number | null
+          heating_pct?: number | null
+          hot_water_pct?: number | null
+          id?: string
+          lighting_pct?: number | null
+          listed_grade?: string | null
+          loa_file_url?: string | null
+          loa_status?: string
+          others_pct?: number | null
+          postcode?: string | null
+          updated_at?: string
+          uprn?: string | null
+          year_built?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sites_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
