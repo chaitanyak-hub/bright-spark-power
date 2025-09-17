@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BatteryOptimizerData {
   mpanNumber: string;
@@ -67,20 +68,15 @@ const BatteryOptimizerForm = () => {
         }
       };
 
-      const apiResponse = await fetch('https://api.perse.io/ncc/api/v1/transform/async-battery-optimizer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer PERSE-TEST-CLIENT-APIKEY-0fcac2975984',
-        },
-        body: JSON.stringify(apiBody),
+      const apiResponse = await supabase.functions.invoke('battery-optimizer', {
+        body: apiBody
       });
 
-      if (!apiResponse.ok) {
-        throw new Error(`API call failed: ${apiResponse.status}`);
+      if (apiResponse.error) {
+        throw new Error(apiResponse.error.message || 'Failed to call battery optimizer');
       }
 
-      const result = await apiResponse.json();
+      const result = apiResponse.data;
       setResponse(result);
       
       toast({

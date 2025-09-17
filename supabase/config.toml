@@ -1,1 +1,4 @@
 project_id = "glovzlprnldohvxiwmjf"
+
+[functions.battery-optimizer]
+verify_jwt = false
