@@ -2,3 +2,6 @@ project_id = "glovzlprnldohvxiwmjf"
 
 [functions.battery-optimizer]
 verify_jwt = false
+
+[functions.test-battery-api]
+verify_jwt = false
