@@ -268,16 +268,22 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       // Create new company if needed
       if (isAddingNewCompany && newCompanyName.trim()) {
         const { data: companyData, error: companyError } = await supabase
-          .from('companies')
-          .insert({
-            name: newCompanyName,
+          .rpc('create_company_with_access', {
+            company_name: newCompanyName,
             companies_house_id: selectedCompaniesHouseId || null
-          })
-          .select()
-          .single();
+          });
 
         if (companyError) throw companyError;
-        finalCompany = companyData;
+        
+        // Fetch the created company details
+        const { data: createdCompany, error: fetchError } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', companyData)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        finalCompany = createdCompany;
       }
 
       // Create new contact if needed

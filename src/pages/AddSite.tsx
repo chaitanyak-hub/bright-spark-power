@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import MockAuthStatus from '@/components/MockAuthStatus';
 
 import CompanyContactAddressStep from '@/components/site-wizard/CompanyContactAddressStep';
 import MeterStep from '@/components/site-wizard/MeterStep';
@@ -69,6 +70,8 @@ const AddSite = () => {
       {/* Header */}
       <section className="bg-background border-b">
         <div className="container mx-auto px-6 py-8">
+          <MockAuthStatus />
+          
           <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10">
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
