@@ -59,13 +59,13 @@ const SiteDashboard = () => {
   const handleOptimizeClick = () => {
     if (site?.loa_status !== 'Verified') {
       toast({
-        title: "Authorization Required",
-        description: "Letter of Authority must be verified before running optimizations",
+        title: "Authorisation Required",
+        description: "Letter of Authority must be verified before running optimisations",
         variant: "destructive"
       });
       return;
     }
-    navigate(`/site/${siteId}/optimize`);
+    navigate(`/site/${siteId}/optimise`);
   };
 
   const handleAutoValidateLoA = async () => {
@@ -175,7 +175,7 @@ const SiteDashboard = () => {
                 className="btn-primary"
               >
                 <Battery className="mr-2 h-5 w-5" />
-                Run Battery Optimization
+                Run Battery Optimisation
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -330,7 +330,7 @@ const SiteDashboard = () => {
           </Card>
         </section>
 
-        {/* Authorization Warning */}
+        {/* Authorisation Warning */}
         {site.loa_status !== 'Verified' && (
           <Card className="mt-8 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-card">
             <CardContent className="p-8">
@@ -339,10 +339,10 @@ const SiteDashboard = () => {
                   <Battery className="h-8 w-8 text-yellow-600" />
                 </div>
                 <div className="text-yellow-800 font-semibold text-lg mb-2">
-                  Battery Optimization Unavailable
+                  Battery Optimisation Unavailable
                 </div>
                 <p className="text-yellow-700 max-w-2xl mx-auto">
-                  Letter of Authority verification is required to access advanced optimization features.
+                  Letter of Authority verification is required to access advanced optimisation features.
                   Current status: <span className="font-semibold">{site.loa_status}</span>
                 </p>
                 {site.loa_status !== 'Verified' && (

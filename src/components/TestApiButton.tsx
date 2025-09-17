@@ -50,12 +50,12 @@ const TestApiButton = () => {
         <CardHeader>
           <CardTitle>API Test</CardTitle>
           <CardDescription>
-            Test the battery optimizer API with the exact payload
+            Test the battery optimiser API with the exact payload
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={runTest} disabled={isLoading} className="w-full">
-            {isLoading ? 'Testing API...' : 'Test Battery Optimizer API'}
+            {isLoading ? 'Testing API...' : 'Test Battery Optimiser API'}
           </Button>
         </CardContent>
       </Card>

@@ -15,7 +15,7 @@ const STEPS = [
   { id: 'setup', title: 'Company & Contact', description: 'Company, contact & address details', icon: '🏢' },
   { id: 'meters', title: 'Meters', description: 'Confirm meter details', icon: '⚡' },
   { id: 'details', title: 'Site Details', description: 'Energy consumption data', icon: '📊' },
-  { id: 'loa', title: 'Authorization', description: 'Letter of Authority', icon: '📋' },
+  { id: 'loa', title: 'Authorisation', description: 'Letter of Authority', icon: '📋' },
 ];
 
 const AddSite = () => {

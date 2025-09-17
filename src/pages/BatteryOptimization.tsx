@@ -156,8 +156,8 @@ const BatteryOptimization = () => {
         setOptimizationComplete(true);
         
         toast({
-          title: "Optimization Complete",
-          description: "Battery optimization analysis completed successfully!",
+          title: "Optimisation Complete",
+          description: "Battery optimisation analysis completed successfully!",
         });
       }
     } catch (error) {
@@ -308,7 +308,7 @@ const BatteryOptimization = () => {
       console.error('Error running optimization:', error);
       toast({
         title: "Error",
-        description: "Failed to run battery optimization",
+        description: "Failed to run battery optimisation",
         variant: "destructive"
       });
     } finally {
@@ -359,7 +359,7 @@ const BatteryOptimization = () => {
                 <Battery className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold">Battery Optimization</h1>
+                <h1 className="text-3xl md:text-4xl font-bold">Battery Optimisation</h1>
                 <p className="text-muted-foreground text-lg">
                   {site.companies?.name} - {site.address_line_1}, {site.postcode}
                 </p>
@@ -380,9 +380,9 @@ const BatteryOptimization = () => {
                     <Battery className="h-6 w-6 text-green-600" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl text-green-800">Optimization Complete!</CardTitle>
+                    <CardTitle className="text-2xl text-green-800">Optimisation Complete!</CardTitle>
                     <CardDescription className="text-green-700">
-                      Your battery optimization analysis has been completed successfully
+                      Your battery optimisation analysis has been completed successfully
                     </CardDescription>
                   </div>
                 </div>
@@ -518,7 +518,7 @@ const BatteryOptimization = () => {
                 <div>
                   <CardTitle className="text-2xl">Battery & Solar Configuration</CardTitle>
                   <CardDescription className="text-base">
-                    Configure parameters for comprehensive battery optimization analysis
+                    Configure parameters for comprehensive battery optimisation analysis
                   </CardDescription>
                 </div>
               </div>
@@ -638,7 +638,7 @@ const BatteryOptimization = () => {
                   ) : (
                     <>
                       <Battery className="mr-3 h-5 w-5" />
-                      Run Battery Optimization
+                      Run Battery Optimisation
                       <ArrowRight className="ml-3 h-5 w-5" />
                     </>
                   )}

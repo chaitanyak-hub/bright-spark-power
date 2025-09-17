@@ -21,7 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/add-site" element={<AddSite />} />
           <Route path="/site/:siteId" element={<SiteDashboard />} />
-          <Route path="/site/:siteId/optimize" element={<BatteryOptimization />} />
+          <Route path="/site/:siteId/optimise" element={<BatteryOptimization />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
