@@ -87,6 +87,11 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
   useEffect(() => {
     if (selectedCompany) {
       fetchContacts();
+    } else {
+      setContacts([]);
+      // Reset contact states when company changes
+      setSelectedContact('');
+      setIsAddingNewContact(false);
     }
   }, [selectedCompany]);
 
@@ -121,6 +126,13 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
       
       if (error) throw error;
       setContacts(data || []);
+      
+      // If no existing contacts, automatically enable "add new contact" mode
+      if (!data || data.length === 0) {
+        setIsAddingNewContact(true);
+      } else {
+        setIsAddingNewContact(false);
+      }
     } catch (error) {
       console.error('Error fetching contacts:', error);
       toast({
@@ -189,6 +201,15 @@ const CompanyContactAddressStep = ({ onNext, initialData }: CompanyContactAddres
     // Validation
     const companyToUse = companies.find(c => c.id === selectedCompany);
     const contactToUse = contacts.find(c => c.id === selectedContact);
+
+    console.log('Validation Debug:', {
+      companyToUse,
+      contactToUse,
+      isAddingNewCompany,
+      isAddingNewContact,
+      contactFormData,
+      selectedAddress
+    });
 
     if (!companyToUse && !isAddingNewCompany) {
       toast({
