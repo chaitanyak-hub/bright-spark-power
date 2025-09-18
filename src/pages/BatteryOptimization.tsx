@@ -28,7 +28,9 @@ const BatteryOptimization = () => {
     solarCostPerKw: 20,
     cycleEffPct: 95,
     minThreshPct: 10,
-    maxThreshPct: 90
+    maxThreshPct: 90,
+    mpan: '',
+    mic: 500
   });
 
   useEffect(() => {
@@ -36,6 +38,17 @@ const BatteryOptimization = () => {
       fetchSiteData();
     }
   }, [siteId]);
+
+  // Update form data when electric meter changes
+  useEffect(() => {
+    if (electricMeter) {
+      setFormData(prev => ({
+        ...prev,
+        mpan: electricMeter.mpan_top_line || electricMeter.mpan_full || '',
+        mic: electricMeter.mic || 500
+      }));
+    }
+  }, [electricMeter]);
 
   const fetchSiteData = async () => {
     try {
@@ -376,11 +389,11 @@ const BatteryOptimization = () => {
     try {
       // Prepare the request body matching the API requirements
       const requestBody = {
-        mpan: electricMeter.mpan_top_line || electricMeter.mpan_full,
+        mpan: formData.mpan || electricMeter.mpan_top_line || electricMeter.mpan_full,
         fromDateTime: "2025-04-01T00:00",
         toDateTime: "2026-03-31T00:00",
         availableCapacity: null,
-        MIC: electricMeter.mic || 500,
+        MIC: formData.mic,
         cycleEff: formData.cycleEffPct / 100, // Convert percentage to decimal
         minThresh: formData.minThreshPct / 100,
         maxThresh: formData.maxThreshPct / 100,
@@ -815,11 +828,12 @@ const BatteryOptimization = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="mpan">MPAN (readonly)</Label>
+                    <Label htmlFor="mpan">MPAN</Label>
                     <Input
                       id="mpan"
-                      value={electricMeter.mpan_top_line || electricMeter.mpan_full}
-                      disabled
+                      value={formData.mpan || electricMeter.mpan_top_line || electricMeter.mpan_full}
+                      onChange={(e) => setFormData(prev => ({ ...prev, mpan: e.target.value }))}
+                      placeholder="Enter MPAN number"
                     />
                   </div>
                   <div>
@@ -827,8 +841,9 @@ const BatteryOptimization = () => {
                     <Input
                       id="mic"
                       type="number"
-                      value={electricMeter.mic || 500}
-                      disabled
+                      value={formData.mic}
+                      onChange={(e) => setFormData(prev => ({ ...prev, mic: parseInt(e.target.value) || 0 }))}
+                      placeholder="Enter MIC value"
                     />
                   </div>
                 </div>
