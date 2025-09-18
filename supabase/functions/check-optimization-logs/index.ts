@@ -50,11 +50,10 @@ serve(async (req) => {
     // Check completion criteria
     const logs = Array.isArray(logsData) ? logsData : [logsData];
     const hasSuccess = logs.some(log => log.code === 'cc-success' && log.status === 'SUCCESS');
-    const hasProcessing = logs.some(log => log.status === 'PROCESSING');
     const hasFailed = logs.some(log => log.status === 'FAILED');
 
     let status = 'Processing';
-    if (hasSuccess && !hasProcessing) {
+    if (hasSuccess) {
       status = 'Succeeded';
     } else if (hasFailed) {
       status = 'Failed';
