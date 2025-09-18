@@ -96,14 +96,40 @@ const LoAStep = ({ onComplete, onBack, siteData }: LoAStepProps) => {
     setCreating(true);
     
     try {
+      console.log('Site data:', siteData);
+      
+      // Extract data safely from nested structure
+      const setupData = siteData.setup || {};
+      const company = setupData.company || {};
+      const contact = setupData.contact || {};
+      const address = setupData.address || {};
+      const details = siteData.details || {};
+      const meters = siteData.meters || [];
+
       // Create the site record
       const { data: site, error: siteError } = await supabase
         .from('sites')
         .insert({
-          company_id: siteData.company.id,
-          contact_id: siteData.contact.id,
-          ...siteData.address,
-          ...siteData.details,
+          company_id: company.id,
+          contact_id: contact.id,
+          address_line_1: address.address_line_1,
+          address_line_2: address.address_line_2,
+          city: address.city,
+          postcode: address.postcode,
+          uprn: address.uprn,
+          elec_supplier: details.elec_supplier,
+          gas_supplier: details.gas_supplier,
+          elec_unit_rate_pence: details.elec_unit_rate_pence,
+          gas_unit_rate_pence: details.gas_unit_rate_pence,
+          area_m2: details.area_m2,
+          floors: details.floors,
+          year_built: details.year_built,
+          listed_grade: details.listed_grade,
+          heating_pct: details.heating_pct,
+          hot_water_pct: details.hot_water_pct,
+          lighting_pct: details.lighting_pct,
+          cooking_pct: details.cooking_pct,
+          others_pct: details.others_pct,
           loa_status: loaStatus
         })
         .select()
@@ -112,12 +138,17 @@ const LoAStep = ({ onComplete, onBack, siteData }: LoAStepProps) => {
       if (siteError) throw siteError;
 
       // Create meter records
-      for (const meter of siteData.meters) {
+      for (const meter of meters) {
         const { error: meterError } = await supabase
           .from('meters')
           .insert({
             site_id: site.id,
-            ...meter
+            meter_type: meter.meter_type,
+            mpan_full: meter.mpan_full,
+            mpan_top_line: meter.mpan_top_line,
+            mprn: meter.mprn,
+            mic: meter.mic,
+            status: meter.status || 'Active'
           });
         
         if (meterError) throw meterError;
@@ -134,7 +165,7 @@ const LoAStep = ({ onComplete, onBack, siteData }: LoAStepProps) => {
       console.error('Error creating site:', error);
       toast({
         title: "Error",
-        description: "Failed to create site",
+        description: "Failed to create site. Please check all required fields.",
         variant: "destructive"
       });
     } finally {
