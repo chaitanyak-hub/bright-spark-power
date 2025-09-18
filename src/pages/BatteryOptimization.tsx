@@ -24,6 +24,7 @@ const BatteryOptimization = () => {
   const [previousOptimizations, setPreviousOptimizations] = useState<any[]>([]);
   const [selectedOptimization, setSelectedOptimization] = useState<any>(null);
   const [showPreviousResults, setShowPreviousResults] = useState(false);
+  const [statusDetails, setStatusDetails] = useState<string>('');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -204,6 +205,14 @@ const BatteryOptimization = () => {
         if (statusError) throw statusError;
 
         console.log('Polling status:', statusResponse);
+
+        // Update status details from first log entry
+        if (statusResponse.logs && statusResponse.logs.length > 0) {
+          const firstLog = statusResponse.logs[0];
+          if (firstLog.details) {
+            setStatusDetails(firstLog.details);
+          }
+        }
 
         if (statusResponse.isComplete) {
           if (statusResponse.status === 'Succeeded') {
@@ -968,10 +977,16 @@ const BatteryOptimization = () => {
                 <h3 className="text-2xl font-semibold mb-3 text-blue-800">{result.status}</h3>
                 <p className="text-blue-700 mb-8 text-lg max-w-md mx-auto">{result.message}</p>
                 {polling && (
-                  <div className="bg-white/50 rounded-lg p-4 mb-6 max-w-sm mx-auto">
-                    <p className="text-sm text-blue-600 font-medium">
+                  <div className="bg-white/50 rounded-lg p-4 mb-6 max-w-lg mx-auto">
+                    <p className="text-sm text-blue-600 font-medium mb-2">
                       ⚡ Automatically checking status...
                     </p>
+                    {statusDetails && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-md border-l-4 border-blue-300">
+                        <p className="text-sm text-blue-800 font-medium">Status Details:</p>
+                        <p className="text-sm text-blue-700 mt-1">{statusDetails}</p>
+                      </div>
+                    )}
                   </div>
                 )}
                 <Button onClick={() => setResult(null)} variant="outline" size="lg" className="border-blue-300 text-blue-700 hover:bg-blue-100">
