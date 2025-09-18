@@ -473,6 +473,118 @@ const BatteryOptimization = () => {
 
         {optimizationComplete && reportData ? (
           <div className="space-y-8">
+            {/* Solar PV Report Analysis */}
+            {reportData.solarPVData && (
+              <Card className="shadow-card border-0 bg-gradient-to-r from-orange-50 to-amber-50">
+                <CardHeader className="pb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl text-orange-800">Solar PV Report Analysis</CardTitle>
+                      <CardDescription className="text-orange-700">
+                        Detailed breakdown of battery scenarios with optimal payback periods
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Key Metrics Summary */}
+                  <div className="grid gap-4 md:grid-cols-4 mb-8">
+                    <div className="text-center p-4 bg-white/70 rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-orange-600 mb-1">
+                        {reportData.solarPVData.summary.minPayback} years
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Minimum Payback</div>
+                    </div>
+                    <div className="text-center p-4 bg-white/70 rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-orange-600 mb-1">
+                        {reportData.solarPVData.summary.recommendedBattery} kWh
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Optimal Battery Size</div>
+                    </div>
+                    <div className="text-center p-4 bg-white/70 rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-orange-600 mb-1">
+                        {reportData.solarPVData.summary.maxChargingRate} kWh
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Max Charging Rate</div>
+                    </div>
+                    <div className="text-center p-4 bg-white/70 rounded-xl shadow-sm">
+                      <div className="text-2xl font-bold text-orange-600 mb-1">
+                        {Math.abs(parseFloat(reportData.solarPVData.summary.maxDischargingRate)).toFixed(1)} kWh
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground">Max Discharging Rate</div>
+                    </div>
+                  </div>
+
+                  {/* Detailed Scenarios Table */}
+                  <Card className="shadow-sm border-0 bg-white/50">
+                    <CardHeader>
+                      <CardTitle className="text-lg">Battery Scenarios Analysis</CardTitle>
+                      <CardDescription>
+                        All scenarios compared with the lowest payback period highlighted
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b-2 border-muted">
+                              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Battery Capacity</th>
+                              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Battery Cost</th>
+                              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Total Cost Imports</th>
+                              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Savings vs BAU</th>
+                              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Payback Period</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {reportData.solarPVData.scenarios.map((scenario: any, index: number) => {
+                              const isOptimal = parseFloat(scenario['Payback (years)']) === parseFloat(reportData.solarPVData.summary.minPayback);
+                              return (
+                                <tr 
+                                  key={index} 
+                                  className={`border-b border-muted/50 hover:bg-muted/20 transition-colors ${
+                                    isOptimal ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 ring-2 ring-green-100' : ''
+                                  }`}
+                                >
+                                  <td className={`py-4 px-4 font-medium ${isOptimal ? 'text-green-800' : ''}`}>
+                                    {scenario['Gross Battery Capacity (kWh)']} kWh
+                                    {isOptimal && (
+                                      <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                                        OPTIMAL
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className={`py-4 px-4 ${isOptimal ? 'font-bold text-green-800' : ''}`}>
+                                    £{parseFloat(scenario['Cost of Battery (£)']).toLocaleString()}
+                                  </td>
+                                  <td className={`py-4 px-4 ${isOptimal ? 'font-bold text-green-800' : ''}`}>
+                                    £{parseFloat(scenario['Total Cost of Imports (£)']).toLocaleString()}
+                                  </td>
+                                  <td className={`py-4 px-4 font-medium ${isOptimal ? 'text-green-600 font-bold' : 'text-green-600'}`}>
+                                    £{parseFloat(scenario['Savings compared to BAU (£)']).toLocaleString()}
+                                  </td>
+                                  <td className={`py-4 px-4 font-bold ${isOptimal ? 'text-green-600 text-lg' : 'text-primary'}`}>
+                                    {parseFloat(scenario['Payback (years)']).toFixed(2)} years
+                                    {isOptimal && (
+                                      <span className="ml-2 text-green-600">
+                                        🏆
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="shadow-card border-0 bg-gradient-to-r from-green-50 to-emerald-50">
               <CardHeader className="pb-6">
                 <div className="flex items-center space-x-3">
