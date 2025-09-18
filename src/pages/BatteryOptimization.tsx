@@ -185,9 +185,17 @@ const BatteryOptimization = () => {
       console.log('Solar PV report response:', reportResponse);
 
       if (reportResponse.success && reportResponse.csvContent) {
-        // Parse the solar PV CSV data first
-        console.log('Solar PV CSV content received');
-        // Now fetch the optimization report with the solar PV data
+        // Parse the solar PV CSV data
+        const solarPVData = parseSolarPVReport(reportResponse.csvContent);
+        console.log('Parsed Solar PV data:', solarPVData);
+        
+        // Store the solar PV data for later use
+        setReportData(prev => ({
+          ...prev,
+          solarPVData
+        }));
+        
+        // Now fetch the optimization report
         await downloadReport(processGuid);
       } else {
         throw new Error('Failed to fetch solar PV report');
@@ -236,6 +244,66 @@ const BatteryOptimization = () => {
         recommendedBattery: bestScenario['Gross Battery Capacity (kWh)'],
         solarPV: '0.0', // As per requirements
         totalCostReduction: bestScenario['Total Cost of Imports (£)']
+      }
+    };
+  };
+
+  const parseSolarPVReport = (csvContent: string) => {
+    const lines = csvContent.trim().split('\n');
+    const data: any = {};
+    const scenarios: any[] = [];
+
+    lines.forEach(line => {
+      const parts = line.split(',');
+      if (parts.length > 1) {
+        const label = parts[0].replace(/"/g, '').trim();
+        const values = parts.slice(1).map(val => val.replace(/"/g, '').trim());
+        data[label] = values;
+      }
+    });
+
+    // Extract scenario data
+    const grossBatteryCapacities = data['Gross Battery Capacity kWh'] || [];
+    const totalCosts = data['Total Cost of Imports'] || [];
+    const savings = data['Savings compared to BAU'] || [];
+    const paybackYears = data['Payback years'] || [];
+    const batteryCosts = data['Cost of Battery'] || [];
+
+    // Create scenarios array
+    for (let i = 0; i < grossBatteryCapacities.length; i++) {
+      if (grossBatteryCapacities[i] && totalCosts[i]) {
+        scenarios.push({
+          'Gross Battery Capacity (kWh)': grossBatteryCapacities[i],
+          'Total Cost of Imports (£)': totalCosts[i],
+          'Savings compared to BAU (£)': savings[i] || '0',
+          'Payback (years)': paybackYears[i] || '0',
+          'Cost of Battery (£)': batteryCosts[i] || '0'
+        });
+      }
+    }
+
+    // Find best scenario (minimum payback)
+    let bestScenario = scenarios[0];
+    let minPayback = parseFloat(data['Minimum Payback']?.[0] || '999');
+
+    scenarios.forEach(scenario => {
+      const payback = parseFloat(scenario['Payback (years)']) || Infinity;
+      if (payback < minPayback) {
+        minPayback = payback;
+        bestScenario = scenario;
+      }
+    });
+
+    return {
+      scenarios,
+      bestScenario,
+      summary: {
+        minPayback: data['Minimum Payback']?.[0] || minPayback.toFixed(2),
+        recommendedBattery: data['Battery']?.[0] || bestScenario?.['Gross Battery Capacity (kWh)'] || '0',
+        solarPV: data['Solar PV']?.[0] || '0.0',
+        totalCostImports: data['Total Cost of Imports']?.[0] || '0',
+        maxChargingRate: data['Maximum Charging Rate kWh']?.[0] || '0',
+        maxDischargingRate: data['Maximum Discharging Rate kWh']?.[0] || '0'
       }
     };
   };
