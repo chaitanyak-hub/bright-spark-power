@@ -98,7 +98,7 @@ const BatteryOptimization = () => {
 
         if (statusResponse.isComplete) {
           if (statusResponse.status === 'Succeeded') {
-            await downloadReport(processGuid);
+            await fetchSolarPVReport(processGuid);
           } else {
             setResult(prev => ({
               ...prev,
@@ -165,6 +165,32 @@ const BatteryOptimization = () => {
       toast({
         title: "Report Error",
         description: "Failed to download optimization report",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchSolarPVReport = async (processGuid: string) => {
+    try {
+      const { data: reportResponse, error: reportError } = await supabase.functions.invoke('get-solar-pv-report', {
+        body: { processGuid }
+      });
+
+      if (reportError) throw reportError;
+
+      console.log('Solar PV report response:', reportResponse);
+
+      if (reportResponse.success && reportResponse.data) {
+        // Now fetch the optimization report with the solar PV data
+        await downloadReport(processGuid);
+      } else {
+        throw new Error('Failed to fetch solar PV report');
+      }
+    } catch (error) {
+      console.error('Error fetching solar PV report:', error);
+      toast({
+        title: "Report Error",
+        description: "Failed to fetch solar PV report",
         variant: "destructive"
       });
     }
