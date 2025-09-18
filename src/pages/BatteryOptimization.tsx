@@ -974,22 +974,24 @@ const BatteryOptimization = () => {
                 <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
                 </div>
-                <h3 className="text-2xl font-semibold mb-3 text-blue-800">{result.status}</h3>
-                <p className="text-blue-700 mb-8 text-lg max-w-md mx-auto">{result.message}</p>
-                {polling && (
-                  <div className="bg-white/50 rounded-lg p-4 mb-6 max-w-lg mx-auto">
-                    <p className="text-sm text-blue-600 font-medium mb-2">
-                      ⚡ Automatically checking status...
-                    </p>
-                    {statusDetails && (
-                      <div className="mt-3 p-3 bg-blue-50 rounded-md border-l-4 border-blue-300">
-                        <p className="text-sm text-blue-800 font-medium">Status Details:</p>
-                        <p className="text-sm text-blue-700 mt-1">{statusDetails}</p>
-                      </div>
-                    )}
+                <h3 className="text-2xl font-semibold mb-3 text-blue-800 animate-fade-in">{result.status}</h3>
+                <p className="text-blue-700 mb-6 text-lg max-w-md mx-auto animate-fade-in">{result.message}</p>
+                
+                {statusDetails && (
+                  <div className="mb-6 p-4 bg-blue-50/80 rounded-lg border border-blue-200 max-w-md mx-auto animate-scale-in">
+                    <p className="text-sm text-blue-800 font-medium mb-2">Status Details:</p>
+                    <p className="text-sm text-blue-700 animate-pulse">{statusDetails}</p>
                   </div>
                 )}
-                <Button onClick={() => setResult(null)} variant="outline" size="lg" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                
+                {polling && (
+                  <div className="bg-white/50 rounded-lg p-4 mb-6 max-w-sm mx-auto animate-fade-in">
+                    <p className="text-sm text-blue-600 font-medium">
+                      ⚡ Automatically checking status...
+                    </p>
+                  </div>
+                )}
+                <Button onClick={() => setResult(null)} variant="outline" size="lg" className="border-blue-300 text-blue-700 hover:bg-blue-100 hover-scale">
                   Cancel Process
                 </Button>
               </div>
