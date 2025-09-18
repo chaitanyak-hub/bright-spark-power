@@ -173,7 +173,11 @@ const BatteryOptimization = () => {
   const fetchSolarPVReport = async (processGuid: string) => {
     try {
       const { data: reportResponse, error: reportError } = await supabase.functions.invoke('get-solar-pv-report', {
-        body: { processGuid }
+        body: { 
+          logGuid: processGuid,
+          solarPvUnitCost: formData.solarCostPerKw,
+          batteryUnitCost: formData.batteryCostPerKwh
+        }
       });
 
       if (reportError) throw reportError;

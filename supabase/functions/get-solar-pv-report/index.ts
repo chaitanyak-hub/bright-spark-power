@@ -13,22 +13,28 @@ serve(async (req) => {
   }
 
   try {
-    const { processGuid } = await req.json();
+    const { logGuid, solarPvUnitCost, batteryUnitCost } = await req.json();
     
-    if (!processGuid) {
-      return new Response(JSON.stringify({ error: 'Process GUID is required' }), {
+    if (!logGuid) {
+      return new Response(JSON.stringify({ error: 'Log GUID is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('Fetching solar PV report for process GUID:', processGuid);
+    console.log('Fetching solar PV report for log GUID:', logGuid);
 
-    const response = await fetch(`https://api.perse.io/ncc/api/v1/transform/get-solar-pv-report?process-guid=${processGuid}`, {
-      method: 'GET',
+    const response = await fetch('https://api.perse.io/ncc/api/v1/transform/solar-pv/report-download-csv', {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': 'Basic YWRtaW46YWRtaW4xMjM=',
       },
+      body: JSON.stringify({
+        logGuid,
+        solarPvUnitCost: solarPvUnitCost || 20,
+        batteryUnitCost: batteryUnitCost || 250.0
+      })
     });
 
     console.log('Solar PV report API response status:', response.status);
@@ -50,7 +56,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       data: reportData,
-      processGuid
+      logGuid
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
