@@ -189,14 +189,21 @@ const BatteryOptimization = () => {
         const solarPVData = parseSolarPVReport(reportResponse.csvContent);
         console.log('Parsed Solar PV data:', solarPVData);
         
-        // Store the solar PV data for later use
-        setReportData(prev => ({
-          ...prev,
-          solarPVData
-        }));
+        // Update the report data with solar PV data and mark as complete
+        setReportData({
+          solarPVData,
+          scenarios: solarPVData.scenarios,
+          bestScenario: solarPVData.bestScenario,
+          summary: solarPVData.summary
+        });
         
-        // Now fetch the optimization report
-        await downloadReport(processGuid);
+        // Mark optimization as complete to show results
+        setOptimizationComplete(true);
+        
+        toast({
+          title: "Optimization Complete",
+          description: "Solar PV battery optimization analysis completed successfully!",
+        });
       } else {
         throw new Error('Failed to fetch solar PV report');
       }
