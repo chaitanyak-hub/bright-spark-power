@@ -38,24 +38,25 @@ serve(async (req) => {
     });
 
     console.log('Solar PV report API response status:', response.status);
-    
-    const reportData = await response.json();
-    console.log('Solar PV report data:', JSON.stringify(reportData, null, 2));
 
     if (!response.ok) {
-      console.error('Solar PV report API error:', reportData);
+      const errorData = await response.text();
+      console.error('Solar PV report API error:', errorData);
       return new Response(JSON.stringify({ 
         error: 'Failed to fetch solar PV report', 
-        details: reportData 
+        details: errorData 
       }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    const csvContent = await response.text();
+    console.log('Solar PV CSV content received, length:', csvContent.length);
+
     return new Response(JSON.stringify({
+      csvContent,
       success: true,
-      data: reportData,
       logGuid
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

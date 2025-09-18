@@ -184,7 +184,9 @@ const BatteryOptimization = () => {
 
       console.log('Solar PV report response:', reportResponse);
 
-      if (reportResponse.success && reportResponse.data) {
+      if (reportResponse.success && reportResponse.csvContent) {
+        // Parse the solar PV CSV data first
+        console.log('Solar PV CSV content received');
         // Now fetch the optimization report with the solar PV data
         await downloadReport(processGuid);
       } else {
