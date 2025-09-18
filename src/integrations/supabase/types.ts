@@ -191,6 +191,63 @@ export type Database = {
           },
         ]
       }
+      optimization_results: {
+        Row: {
+          battery_cost_per_kwh: number
+          best_scenario: Json
+          created_at: string
+          cycle_eff_pct: number
+          id: string
+          max_thresh_pct: number
+          mic: number
+          min_thresh_pct: number
+          mpan: string
+          process_guid: string
+          scenarios_data: Json
+          site_id: string
+          solar_cost_per_kw: number
+          status: string
+          summary_data: Json
+          updated_at: string
+        }
+        Insert: {
+          battery_cost_per_kwh: number
+          best_scenario: Json
+          created_at?: string
+          cycle_eff_pct: number
+          id?: string
+          max_thresh_pct: number
+          mic: number
+          min_thresh_pct: number
+          mpan: string
+          process_guid: string
+          scenarios_data: Json
+          site_id: string
+          solar_cost_per_kw: number
+          status?: string
+          summary_data: Json
+          updated_at?: string
+        }
+        Update: {
+          battery_cost_per_kwh?: number
+          best_scenario?: Json
+          created_at?: string
+          cycle_eff_pct?: number
+          id?: string
+          max_thresh_pct?: number
+          mic?: number
+          min_thresh_pct?: number
+          mpan?: string
+          process_guid?: string
+          scenarios_data?: Json
+          site_id?: string
+          solar_cost_per_kw?: number
+          status?: string
+          summary_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           address_line_1: string | null

@@ -21,6 +21,9 @@ const BatteryOptimization = () => {
   const [reportData, setReportData] = useState<any>(null);
   const [processGuid, setProcessGuid] = useState<string>('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [previousOptimizations, setPreviousOptimizations] = useState<any[]>([]);
+  const [selectedOptimization, setSelectedOptimization] = useState<any>(null);
+  const [showPreviousResults, setShowPreviousResults] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -36,6 +39,7 @@ const BatteryOptimization = () => {
   useEffect(() => {
     if (siteId) {
       fetchSiteData();
+      fetchPreviousOptimizations();
     }
   }, [siteId]);
 
@@ -94,6 +98,96 @@ const BatteryOptimization = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPreviousOptimizations = async () => {
+    if (!siteId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('optimization_results')
+        .select('*')
+        .eq('site_id', siteId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPreviousOptimizations(data || []);
+    } catch (error) {
+      console.error('Error fetching previous optimizations:', error);
+    }
+  };
+
+  const saveOptimizationResults = async (processGuid: string, reportData: any) => {
+    if (!siteId) return;
+
+    try {
+      const { error } = await supabase
+        .from('optimization_results')
+        .insert({
+          site_id: siteId,
+          process_guid: processGuid,
+          mpan: formData.mpan || electricMeter?.mpan_top_line || electricMeter?.mpan_full,
+          mic: formData.mic,
+          battery_cost_per_kwh: formData.batteryCostPerKwh,
+          solar_cost_per_kw: formData.solarCostPerKw,
+          cycle_eff_pct: formData.cycleEffPct,
+          min_thresh_pct: formData.minThreshPct,
+          max_thresh_pct: formData.maxThreshPct,
+          scenarios_data: reportData.scenarios,
+          best_scenario: reportData.bestScenario,
+          summary_data: reportData.summary,
+          status: 'Completed'
+        });
+
+      if (error) throw error;
+      
+      // Refresh the previous optimizations list
+      fetchPreviousOptimizations();
+    } catch (error) {
+      console.error('Error saving optimization results:', error);
+    }
+  };
+
+  const recalculateBusinessCase = (optimization: any) => {
+    // Recalculate scenarios with new cost parameters
+    const updatedScenarios = optimization.scenarios_data.map((scenario: any) => {
+      const grossCapacity = parseFloat(scenario['Gross Battery Capacity (kWh)']);
+      const newBatteryCost = grossCapacity * formData.batteryCostPerKwh;
+      const savings = parseFloat(scenario['Savings compared to BAU (£)']);
+      const newPayback = savings > 0 ? (newBatteryCost / savings).toFixed(2) : '999';
+
+      return {
+        ...scenario,
+        'Cost of Battery (£)': newBatteryCost.toString(),
+        'Payback (years)': newPayback
+      };
+    });
+
+    // Find new best scenario
+    let bestScenario = updatedScenarios[0];
+    let minPayback = parseFloat(bestScenario['Payback (years)']) || Infinity;
+
+    updatedScenarios.forEach(scenario => {
+      const payback = parseFloat(scenario['Payback (years)']) || Infinity;
+      if (payback < minPayback) {
+        minPayback = payback;
+        bestScenario = scenario;
+      }
+    });
+
+    const updatedReportData = {
+      scenarios: updatedScenarios,
+      bestScenario,
+      summary: {
+        ...optimization.summary_data,
+        minPayback: minPayback.toFixed(2),
+        recommendedBattery: bestScenario?.['Gross Battery Capacity (kWh)'] || '0'
+      }
+    };
+
+    setReportData(updatedReportData);
+    setOptimizationComplete(true);
+    setShowPreviousResults(false);
   };
 
   const pollOptimizationStatus = async (processGuid: string) => {
@@ -207,6 +301,13 @@ const BatteryOptimization = () => {
         // Update the report data with solar PV data and mark as complete
         setReportData({
           solarPVData,
+          scenarios: solarPVData.scenarios,
+          bestScenario: solarPVData.bestScenario,
+          summary: solarPVData.summary
+        });
+        
+        // Save optimization results to database
+        await saveOptimizationResults(processGuid, {
           scenarios: solarPVData.scenarios,
           bestScenario: solarPVData.bestScenario,
           summary: solarPVData.summary
@@ -536,6 +637,76 @@ const BatteryOptimization = () => {
       </section>
 
       <div className="container mx-auto px-6 py-8 max-w-6xl">
+        {/* Previous Optimizations Section */}
+        {previousOptimizations.length > 0 && !optimizationComplete && !result && (
+          <Card className="shadow-card border-0 mb-8">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl">Previous Optimizations</CardTitle>
+                  <CardDescription>View and adjust cost parameters for previous optimization runs</CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPreviousResults(!showPreviousResults)}
+                >
+                  {showPreviousResults ? 'Hide' : 'Show'} Previous Results
+                </Button>
+              </div>
+            </CardHeader>
+            {showPreviousResults && (
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-muted">
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Date</th>
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">MPAN</th>
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">MIC</th>
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Battery Cost</th>
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Best Payback</th>
+                        <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previousOptimizations.map((optimization) => (
+                        <tr key={optimization.id} className="border-b border-muted/50 hover:bg-muted/20 transition-colors">
+                          <td className="py-4 px-4">{new Date(optimization.created_at).toLocaleDateString()}</td>
+                          <td className="py-4 px-4 font-mono text-sm">{optimization.mpan}</td>
+                          <td className="py-4 px-4">{optimization.mic} kW</td>
+                          <td className="py-4 px-4">£{optimization.battery_cost_per_kwh}/kWh</td>
+                          <td className="py-4 px-4 font-bold text-primary">{optimization.summary_data.minPayback} years</td>
+                          <td className="py-4 px-4">
+                            <Button 
+                              size="sm" 
+                              onClick={() => {
+                                setSelectedOptimization(optimization);
+                                // Update form data with optimization parameters
+                                setFormData({
+                                  batteryCostPerKwh: optimization.battery_cost_per_kwh,
+                                  solarCostPerKw: optimization.solar_cost_per_kw,
+                                  cycleEffPct: optimization.cycle_eff_pct,
+                                  minThreshPct: optimization.min_thresh_pct,
+                                  maxThreshPct: optimization.max_thresh_pct,
+                                  mpan: optimization.mpan,
+                                  mic: optimization.mic
+                                });
+                                recalculateBusinessCase(optimization);
+                              }}
+                            >
+                              View & Adjust
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
+
 
         {optimizationComplete && reportData ? (
           <div className="space-y-8">
@@ -819,7 +990,7 @@ const BatteryOptimization = () => {
                 <div>
                   <CardTitle className="text-2xl">Battery & Solar Configuration</CardTitle>
                   <CardDescription className="text-base">
-                    Configure parameters for comprehensive battery optimization analysis
+                    {selectedOptimization ? 'Viewing previous optimization - adjust costs to see updated business case' : 'Configure parameters for comprehensive battery optimization analysis'}
                   </CardDescription>
                 </div>
               </div>
@@ -927,25 +1098,37 @@ const BatteryOptimization = () => {
                   </CardContent>
                 </Card>
 
-                <Button 
-                  type="submit" 
-                  size="lg"
-                  className="w-full btn-primary h-14 text-lg" 
-                  disabled={optimizing}
-                >
-                  {optimizing ? (
-                    <>
-                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                      Running Optimization...
-                    </>
-                  ) : (
-                    <>
-                      <Battery className="mr-3 h-5 w-5" />
-                      Run Battery Optimization
-                      <ArrowRight className="ml-3 h-5 w-5" />
-                    </>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    disabled={optimizing}
+                    className="flex-1"
+                  >
+                    {optimizing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Running Optimization...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                        Run Battery Optimization
+                      </>
+                    )}
+                  </Button>
+                  {selectedOptimization && (
+                    <Button 
+                      type="button"
+                      onClick={() => recalculateBusinessCase(selectedOptimization)}
+                      size="lg"
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Update Business Case
+                    </Button>
                   )}
-                </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
