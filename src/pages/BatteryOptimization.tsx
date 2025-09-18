@@ -19,6 +19,8 @@ const BatteryOptimization = () => {
   const [result, setResult] = useState<any>(null);
   const [optimizationComplete, setOptimizationComplete] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
+  const [processGuid, setProcessGuid] = useState<string>('');
+  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -210,10 +212,52 @@ const BatteryOptimization = () => {
     } catch (error) {
       console.error('Error fetching solar PV report:', error);
       toast({
-        title: "Report Error",
-        description: "Failed to fetch solar PV report",
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to fetch optimization report. Please try again.",
+        variant: "destructive",
       });
+    }
+  };
+
+  const downloadDetailedAnalysis = async () => {
+    if (!processGuid) return;
+
+    try {
+      setIsDownloading(true);
+      const { data, error } = await supabase.functions.invoke('download-detailed-analysis', {
+        body: { logGuid: processGuid }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.csvContent) {
+        // Create and download the CSV file
+        const blob = new Blob([data.csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `detailed-analysis-${processGuid}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        toast({
+          title: "Download Complete",
+          description: "Detailed analysis CSV has been downloaded successfully!",
+        });
+      } else {
+        throw new Error('Failed to download detailed analysis');
+      }
+    } catch (error) {
+      console.error('Error downloading detailed analysis:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download detailed analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -406,6 +450,8 @@ const BatteryOptimization = () => {
           message: 'Your optimization request is being processed. This may take a few minutes.'
         });
 
+        setProcessGuid(processGuid);
+
         // Start polling for completion
         pollOptimizationStatus(processGuid);
       } else {
@@ -525,14 +571,37 @@ const BatteryOptimization = () => {
                     </div>
                   </div>
 
-                  {/* Detailed Scenarios Table */}
-                  <Card className="shadow-sm border-0 bg-white/50">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Battery Scenarios Analysis</CardTitle>
-                      <CardDescription>
-                        All scenarios compared with the lowest payback period highlighted
-                      </CardDescription>
-                    </CardHeader>
+                   {/* Detailed Scenarios Table */}
+                   <Card className="shadow-sm border-0 bg-white/50">
+                     <CardHeader>
+                       <div className="flex justify-between items-center">
+                         <div>
+                           <CardTitle className="text-lg">Battery Scenarios Analysis</CardTitle>
+                           <CardDescription>
+                             All scenarios compared with the lowest payback period highlighted
+                           </CardDescription>
+                         </div>
+                         <Button 
+                           onClick={downloadDetailedAnalysis}
+                           disabled={isDownloading}
+                           className="bg-orange-600 hover:bg-orange-700 text-white"
+                         >
+                           {isDownloading ? (
+                             <>
+                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                               Downloading...
+                             </>
+                           ) : (
+                             <>
+                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                               </svg>
+                               Download Detailed Analysis CSV
+                             </>
+                           )}
+                         </Button>
+                       </div>
+                     </CardHeader>
                     <CardContent>
                       <div className="overflow-x-auto">
                         <table className="w-full">
