@@ -34,7 +34,14 @@ const BatteryOptimization = () => {
     minThreshPct: 10,
     maxThreshPct: 90,
     mpan: '',
-    mic: 500
+    mic: 500,
+    analysisStartMonth: 'April',
+    analysisStartYear: 2025,
+    analysisEndMonth: 'March',
+    analysisEndYear: 2026,
+    batteryMinKwh: 500,
+    batteryMaxKwh: 1200,
+    batteryStepKwh: 100
   });
 
   useEffect(() => {
@@ -498,22 +505,31 @@ const BatteryOptimization = () => {
     
     try {
       // Prepare the request body matching the API requirements
+      const monthToNumber = {
+        'January': '01', 'February': '02', 'March': '03', 'April': '04',
+        'May': '05', 'June': '06', 'July': '07', 'August': '08',
+        'September': '09', 'October': '10', 'November': '11', 'December': '12'
+      };
+      
+      const startMonth = monthToNumber[formData.analysisStartMonth as keyof typeof monthToNumber];
+      const endMonth = monthToNumber[formData.analysisEndMonth as keyof typeof monthToNumber];
+      
       const requestBody = {
         mpan: formData.mpan || electricMeter.mpan_top_line || electricMeter.mpan_full,
-        fromDateTime: "2025-04-01T00:00",
-        toDateTime: "2026-03-31T00:00",
+        fromDateTime: `${formData.analysisStartYear}-${startMonth}-01T00:00`,
+        toDateTime: `${formData.analysisEndYear}-${endMonth}-31T00:00`,
         availableCapacity: null,
         MIC: formData.mic,
         cycleEff: formData.cycleEffPct / 100, // Convert percentage to decimal
         minThresh: formData.minThreshPct / 100,
         maxThresh: formData.maxThreshPct / 100,
-        batteryGross: 500.0,
+        batteryGross: formData.batteryMinKwh,
         startKwp: 0.0,
         incrementKwp: 0.0,
         endKwp: 0.0,
-        startKwh: 500.0,
-        incrementKwh: 100.0,
-        endKwh: 1200.0,
+        startKwh: formData.batteryMinKwh,
+        incrementKwh: formData.batteryStepKwh,
+        endKwh: formData.batteryMaxKwh,
         generationMetaData: {
           panelCount: null,
           panelCapacityWatts: 500,
@@ -691,7 +707,8 @@ const BatteryOptimization = () => {
                               onClick={() => {
                                 setSelectedOptimization(optimization);
                                 // Update form data with optimization parameters
-                                setFormData({
+                                setFormData(prev => ({
+                                  ...prev,
                                   batteryCostPerKwh: optimization.battery_cost_per_kwh,
                                   solarCostPerKw: optimization.solar_cost_per_kw,
                                   cycleEffPct: optimization.cycle_eff_pct,
@@ -699,7 +716,7 @@ const BatteryOptimization = () => {
                                   maxThreshPct: optimization.max_thresh_pct,
                                   mpan: optimization.mpan,
                                   mic: optimization.mic
-                                });
+                                }));
                                 recalculateBusinessCase(optimization);
                               }}
                             >
@@ -1098,15 +1115,111 @@ const BatteryOptimization = () => {
                 <Card className="bg-gradient-to-r from-muted/30 to-muted/50 border-muted">
                   <CardContent className="p-6">
                     <h4 className="font-semibold mb-4 text-lg">Analysis Parameters</h4>
-                    <div className="grid gap-3 md:grid-cols-3">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-primary"></div>
-                        <span className="text-sm">Analysis Period: April 2025 - March 2026</span>
+                    <div className="grid gap-6">
+                      {/* Analysis Period */}
+                      <div>
+                        <Label className="text-sm font-medium mb-3 block">Analysis Period</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div>
+                            <Label htmlFor="analysisStartMonth" className="text-xs text-muted-foreground">Start Month</Label>
+                            <select
+                              id="analysisStartMonth"
+                              value={formData.analysisStartMonth}
+                              onChange={(e) => setFormData(prev => ({ ...prev, analysisStartMonth: e.target.value }))}
+                              className="w-full mt-1 px-3 py-2 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                            >
+                              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                                <option key={month} value={month}>{month}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <Label htmlFor="analysisStartYear" className="text-xs text-muted-foreground">Start Year</Label>
+                            <Input
+                              id="analysisStartYear"
+                              type="number"
+                              min="2024"
+                              max="2030"
+                              value={formData.analysisStartYear}
+                              onChange={(e) => setFormData(prev => ({ ...prev, analysisStartYear: parseInt(e.target.value) || 2025 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="analysisEndMonth" className="text-xs text-muted-foreground">End Month</Label>
+                            <select
+                              id="analysisEndMonth"
+                              value={formData.analysisEndMonth}
+                              onChange={(e) => setFormData(prev => ({ ...prev, analysisEndMonth: e.target.value }))}
+                              className="w-full mt-1 px-3 py-2 text-sm border border-input bg-background rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                            >
+                              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                                <option key={month} value={month}>{month}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <Label htmlFor="analysisEndYear" className="text-xs text-muted-foreground">End Year</Label>
+                            <Input
+                              id="analysisEndYear"
+                              type="number"
+                              min="2024"
+                              max="2030"
+                              value={formData.analysisEndYear}
+                              onChange={(e) => setFormData(prev => ({ ...prev, analysisEndYear: parseInt(e.target.value) || 2026 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-secondary"></div>
-                        <span className="text-sm">Battery Range: 500 - 1200 kWh (100 kWh steps)</span>
+
+                      {/* Battery Range */}
+                      <div>
+                        <Label className="text-sm font-medium mb-3 block">Battery Range (kWh)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <Label htmlFor="batteryMinKwh" className="text-xs text-muted-foreground">Minimum</Label>
+                            <Input
+                              id="batteryMinKwh"
+                              type="number"
+                              min="100"
+                              max="2000"
+                              step="50"
+                              value={formData.batteryMinKwh}
+                              onChange={(e) => setFormData(prev => ({ ...prev, batteryMinKwh: parseInt(e.target.value) || 500 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="batteryMaxKwh" className="text-xs text-muted-foreground">Maximum</Label>
+                            <Input
+                              id="batteryMaxKwh"
+                              type="number"
+                              min="200"
+                              max="3000"
+                              step="50"
+                              value={formData.batteryMaxKwh}
+                              onChange={(e) => setFormData(prev => ({ ...prev, batteryMaxKwh: parseInt(e.target.value) || 1200 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="batteryStepKwh" className="text-xs text-muted-foreground">Step Size</Label>
+                            <Input
+                              id="batteryStepKwh"
+                              type="number"
+                              min="25"
+                              max="500"
+                              step="25"
+                              value={formData.batteryStepKwh}
+                              onChange={(e) => setFormData(prev => ({ ...prev, batteryStepKwh: parseInt(e.target.value) || 100 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Solar PV Info */}
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 rounded-full bg-primary"></div>
                         <span className="text-sm">Solar PV: 0 kW (battery-only analysis)</span>
